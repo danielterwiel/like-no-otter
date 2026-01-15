@@ -17,3 +17,23 @@ Completed:
 - App.tsx renders styled Text component with NativeWind classes
 - App runs with 'npx expo start' without errors
 - TypeScript type checking passes (npx tsc --noEmit)
+
+2026-01-15: US-001-VALIDATION - Validation pipeline with Lefthook
+
+Completed:
+- Installed oxlint for linting TypeScript/TSX files with recommended rules
+- Installed oxfmt for code formatting
+- Installed vitest with vitest.config.ts for unit testing
+- Installed lefthook and configured lefthook.yml with pre-commit hooks:
+  - format-check: runs oxfmt --check on staged files
+  - lint: runs oxlint on staged files
+  - typecheck: runs tsc --noEmit
+  - test: runs vitest run --passWithNoTests
+  - audit: runs npm audit --audit-level=high
+- Added package.json scripts:
+  - npm run check: oxfmt --check, oxlint, tsc --noEmit, vitest run, npm audit
+  - npm run fix: oxfmt --write, oxlint --fix
+  - npm run test: vitest run
+  - postinstall: lefthook install (auto-installs hooks)
+- Ran npm run fix to format all existing code
+- Verified npm run check passes with 0 errors

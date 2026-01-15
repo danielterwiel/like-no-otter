@@ -21,25 +21,30 @@ npx tsc --noEmit        # Check types without emitting
 ## Architecture
 
 ### Stack
+
 - **Expo SDK 54** with New Architecture enabled
 - **NativeWind v4** for Tailwind CSS styling in React Native
 - **react-native-reusables** for UI components (shadcn/ui-style)
 - **TypeScript** with strict mode
 
 ### Path Aliases
+
 Use `@/` for imports (configured in tsconfig.json):
+
 ```typescript
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 ```
 
 ### Styling Pattern
+
 - Use `className` prop with Tailwind classes via NativeWind
 - Use `cn()` utility from `@/lib/utils` to merge class names
 - Theme colors defined as CSS variables in `global.css` (light/dark)
 - Semantic color tokens: `bg-background`, `text-foreground`, `text-primary`, etc.
 
 ### Planned Architecture (from prd.json)
+
 - **Database**: Drizzle ORM with expo-sqlite (`lib/db/`)
 - **State**: XState for workout state machine
 - **Data fetching**: TanStack Query with offline-first mode
@@ -49,6 +54,7 @@ import { cn } from "@/lib/utils";
 ## UI Components
 
 Add components via react-native-reusables CLI:
+
 ```bash
 npx @react-native-reusables/cli@latest add <component>
 ```

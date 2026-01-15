@@ -18,7 +18,7 @@ const Text = React.forwardRef<React.ElementRef<typeof RNText>, TextProps>(
         {...props}
       />
     );
-  }
+  },
 );
 Text.displayName = "Text";
 

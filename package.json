@@ -1,12 +1,17 @@
 {
   "name": "like-no-otter",
   "version": "1.0.0",
+  "private": true,
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "check": "oxfmt --check . && oxlint . && tsc --noEmit && vitest run --passWithNoTests && npm audit --audit-level=high",
+    "fix": "oxfmt --write . && oxlint --fix .",
+    "test": "vitest run",
+    "postinstall": "lefthook install"
   },
   "dependencies": {
     "@rn-primitives/portal": "^1.3.0",
@@ -26,8 +31,11 @@
     "@expo/ngrok": "^4.1.3",
     "@types/react": "~19.1.0",
     "babel-preset-expo": "^54.0.9",
-    "typescript": "~5.9.2"
+    "lefthook": "^2.0.15",
+    "oxfmt": "^0.24.0",
+    "oxlint": "^1.39.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.17"
   },
-  "private": true,
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

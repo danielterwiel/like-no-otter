@@ -1,0 +1,15 @@
+pre-commit:
+  parallel: true
+  commands:
+    format-check:
+      glob: "*.{ts,tsx,js,jsx}"
+      run: npx oxfmt --check {staged_files}
+    lint:
+      glob: "*.{ts,tsx,js,jsx}"
+      run: npx oxlint {staged_files}
+    typecheck:
+      run: npx tsc --noEmit
+    test:
+      run: npx vitest run --passWithNoTests
+    audit:
+      run: npm audit --audit-level=high

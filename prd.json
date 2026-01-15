@@ -39,7 +39,7 @@
         "All existing code passes validation pipeline"
       ],
       "priority": 1.1,
-      "passes": false,
+      "passes": true,
       "notes": "Ralph-loop ready: nothing commits unless check exits 0"
     },
     {
