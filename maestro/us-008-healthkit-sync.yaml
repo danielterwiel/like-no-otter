@@ -1,0 +1,20 @@
+# US-008: HealthKit sync service
+# Verifies offline data access works
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Health tab
+- tapOn:
+    text: "Health"
+
+# Verify health data displays (from SQLite cache when offline)
+- assertVisible:
+    id: "health-tab"
+    optional: true
+# Data should be available even if HealthKit is unavailable

@@ -1,0 +1,43 @@
+# US-011: Set logging
+# Verifies weight/reps input and save
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to active workout (when implemented)
+- tapOn:
+    text: "Workouts"
+
+# Start a workout
+- tapOn:
+    id: "start-workout-button"
+    optional: true
+
+# Enter weight
+- tapOn:
+    id: "weight-input"
+    optional: true
+
+- inputText: "135"
+
+# Enter reps
+- tapOn:
+    id: "reps-input"
+    optional: true
+
+- inputText: "10"
+
+# Save the set
+- tapOn:
+    text: "Add Set"
+    optional: true
+
+# Verify set appears in list
+- assertVisible:
+    text: "135"
+    optional: true

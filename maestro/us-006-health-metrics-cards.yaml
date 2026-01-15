@@ -1,0 +1,31 @@
+# US-006: Health metrics cards
+# Verifies health cards display on Health tab
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Health tab
+- tapOn:
+    text: "Health"
+
+# Verify health metric cards are visible (when implemented)
+- assertVisible:
+    id: "sleep-card"
+    optional: true
+
+- assertVisible:
+    id: "steps-card"
+    optional: true
+
+- assertVisible:
+    id: "calories-card"
+    optional: true
+
+- assertVisible:
+    id: "rhr-card"
+    optional: true

@@ -1,0 +1,16 @@
+# US-001: Project setup with Expo and TypeScript
+# Verifies app launches and shows title
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+- assertVisible:
+    id: "app-title"
+
+- assertVisible:
+    text: "Like No Otter"

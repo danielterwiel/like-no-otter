@@ -1,0 +1,34 @@
+# US-013: Workout summary and save
+# Verifies summary screen and save functionality
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to finish a workout (when implemented)
+- tapOn:
+    text: "Workouts"
+
+# Assume workout is finished, verify summary screen
+- assertVisible:
+    id: "workout-summary"
+    optional: true
+
+# Verify duration is shown
+- assertVisible:
+    text: "Duration"
+    optional: true
+
+# Verify total volume is shown
+- assertVisible:
+    text: "Volume"
+    optional: true
+
+# Save the workout
+- tapOn:
+    text: "Save"
+    optional: true

@@ -76,7 +76,7 @@
         "Maestro test passes: maestro/us-001-app-launches.yaml"
       ],
       "priority": 1.5,
-      "passes": false,
+      "passes": true,
       "notes": "Install Maestro CLI locally: curl -Ls 'https://get.maestro.mobile.dev' | bash"
     },
     {

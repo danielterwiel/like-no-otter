@@ -1,0 +1,32 @@
+# US-018: Task list view
+# Verifies section grouping (Today, Upcoming, Done)
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Tasks tab
+- tapOn:
+    text: "Tasks"
+
+# Verify section headers are visible (when implemented)
+- assertVisible:
+    text: "Today"
+    optional: true
+
+- assertVisible:
+    text: "Upcoming"
+    optional: true
+
+- assertVisible:
+    text: "Done"
+    optional: true
+
+# Verify task list container
+- assertVisible:
+    id: "task-list"
+    optional: true

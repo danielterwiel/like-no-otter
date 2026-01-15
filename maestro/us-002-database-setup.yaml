@@ -1,0 +1,13 @@
+# US-002: Database setup with Drizzle and SQLite
+# Verifies app launches after DB setup (database migrations complete without errors)
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+# App should launch successfully with database initialized
+- assertVisible:
+    id: "app-ready"
+# Placeholder: When database is set up, verify DB-dependent UI renders
+# This test will be expanded when US-002 is implemented

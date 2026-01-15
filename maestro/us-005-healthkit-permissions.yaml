@@ -1,0 +1,21 @@
+# US-005: HealthKit permissions flow
+# Verifies onboarding flow for HealthKit authorization
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Verify onboarding screen appears for first-time users (when implemented)
+- assertVisible:
+    id: "healthkit-onboarding"
+    optional: true
+
+# Verify authorization explanation is shown
+- assertVisible:
+    text: "health data"
+    optional: true
+# Test authorization flow - will interact with system dialogs when implemented

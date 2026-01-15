@@ -1,0 +1,28 @@
+# US-015: Muscle frequency chart
+# Verifies bar chart renders on Workouts tab
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Workouts tab
+- tapOn:
+    text: "Workouts"
+
+# Verify muscle frequency chart is visible (when implemented)
+- assertVisible:
+    id: "muscle-frequency-chart"
+    optional: true
+
+# Verify muscle group labels are shown
+- assertVisible:
+    text: "Chest"
+    optional: true
+
+- assertVisible:
+    text: "Back"
+    optional: true

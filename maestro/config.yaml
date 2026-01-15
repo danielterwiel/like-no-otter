@@ -1,0 +1,19 @@
+# Maestro E2E Testing Configuration
+# https://maestro.mobile.dev/
+
+appId: com.likenootter.app
+
+# Test execution settings
+flows:
+  - "*.yaml"
+  - "!config.yaml"
+
+# Screenshot directory for test artifacts
+screenshotDir: screenshots
+
+# Default timeout for waiting on elements (ms)
+waitTimeout: 5000
+
+# Environment variables available in all tests
+env:
+  APP_NAME: "Like No Otter"

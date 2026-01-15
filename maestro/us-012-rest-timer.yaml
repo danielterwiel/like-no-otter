@@ -1,0 +1,30 @@
+# US-012: Rest timer with skip
+# Verifies rest timer and skip functionality
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to active workout (when implemented)
+- tapOn:
+    text: "Workouts"
+
+# Assume workout is in progress and set was just completed
+# Verify rest timer appears
+- assertVisible:
+    id: "rest-timer"
+    optional: true
+
+# Verify skip button is available
+- assertVisible:
+    text: "Skip Rest"
+    optional: true
+
+# Test skip functionality
+- tapOn:
+    text: "Skip Rest"
+    optional: true

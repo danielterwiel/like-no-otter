@@ -11,6 +11,8 @@
     "check": "oxfmt --check . && oxlint . && tsc --noEmit && vitest run --passWithNoTests && npm audit --audit-level=high",
     "fix": "oxfmt --write . && oxlint --fix .",
     "test": "vitest run",
+    "test:e2e": "maestro test maestro/",
+    "test:e2e:us": "maestro test",
     "postinstall": "lefthook install"
   },
   "dependencies": {

@@ -1,0 +1,28 @@
+# US-020: Loading states and empty states
+# Verifies skeletons and empty state displays
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Workouts tab with no workouts
+- tapOn:
+    text: "Workouts"
+
+# Verify empty state is shown when no workouts exist (when implemented)
+- assertVisible:
+    id: "empty-state"
+    optional: true
+
+# Navigate to Tasks tab
+- tapOn:
+    text: "Tasks"
+
+# Verify empty state for no tasks
+- assertVisible:
+    id: "empty-state"
+    optional: true

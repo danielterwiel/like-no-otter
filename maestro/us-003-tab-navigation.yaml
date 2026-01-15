@@ -1,0 +1,48 @@
+# US-003: Tab navigation with Expo Router
+# Verifies 4 tabs visible and navigable
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Verify all 4 tabs are visible
+- assertVisible:
+    text: "Today"
+
+- assertVisible:
+    text: "Health"
+
+- assertVisible:
+    text: "Workouts"
+
+- assertVisible:
+    text: "Tasks"
+
+# Test tab navigation
+- tapOn:
+    text: "Health"
+
+- assertVisible:
+    id: "health-tab"
+
+- tapOn:
+    text: "Workouts"
+
+- assertVisible:
+    id: "workouts-tab"
+
+- tapOn:
+    text: "Tasks"
+
+- assertVisible:
+    id: "tasks-tab"
+
+- tapOn:
+    text: "Today"
+
+- assertVisible:
+    id: "today-tab"

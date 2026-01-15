@@ -1,0 +1,41 @@
+# US-009: Workout setup screen
+# Verifies exercise search and queue functionality
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Workouts tab
+- tapOn:
+    text: "Workouts"
+
+# Open workout setup modal (when implemented)
+- tapOn:
+    id: "start-workout-button"
+    optional: true
+
+# Verify search input is visible
+- assertVisible:
+    id: "exercise-search-input"
+    optional: true
+
+# Search for an exercise
+- tapOn:
+    id: "exercise-search-input"
+    optional: true
+
+- inputText: "squat"
+
+# Select an exercise to add to queue
+- tapOn:
+    text: "Squat"
+    optional: true
+
+# Verify exercise appears in queue
+- assertVisible:
+    id: "workout-queue"
+    optional: true

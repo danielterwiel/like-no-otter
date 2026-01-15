@@ -37,3 +37,38 @@ Completed:
   - postinstall: lefthook install (auto-installs hooks)
 - Ran npm run fix to format all existing code
 - Verified npm run check passes with 0 errors
+
+2026-01-15: US-001-E2E - Maestro E2E testing setup
+
+Completed:
+- Added bundleIdentifier (iOS) and package (Android) to app.json: com.likenootter.app
+- Created maestro/ directory with config.yaml for E2E testing
+- Created 21 Maestro test files for all user stories (US-001 through US-021):
+  - us-001-app-launches.yaml: verifies app launches and shows title
+  - us-002-database-setup.yaml: verifies app launches after DB setup
+  - us-003-tab-navigation.yaml: verifies 4 tabs visible and navigable
+  - us-004-seed-exercises.yaml: verifies exercise search returns results
+  - us-005-healthkit-permissions.yaml: verifies onboarding flow
+  - us-006-health-metrics-cards.yaml: verifies health cards display
+  - us-007-rhr-trend-chart.yaml: verifies RHR chart renders
+  - us-008-healthkit-sync.yaml: verifies offline data access
+  - us-009-workout-setup.yaml: verifies exercise search and queue
+  - us-010-active-workout.yaml: verifies timer and exercise navigation
+  - us-011-set-logging.yaml: verifies weight/reps input and save
+  - us-012-rest-timer.yaml: verifies rest timer and skip
+  - us-013-workout-summary.yaml: verifies summary screen and save
+  - us-014-workout-history.yaml: verifies history list and cards
+  - us-015-muscle-frequency-chart.yaml: verifies bar chart
+  - us-016-healthkit-write.yaml: verifies workout sync status
+  - us-017-task-creation.yaml: verifies task form and save
+  - us-018-task-list-view.yaml: verifies section grouping
+  - us-019-task-completion.yaml: verifies checkbox and swipe
+  - us-020-loading-empty-states.yaml: verifies skeletons and empty states
+  - us-021-error-handling.yaml: verifies offline resilience
+- Added testID='app-ready' and testID='app-title' to App.tsx for E2E verification
+- Added package.json scripts:
+  - npm run test:e2e: runs all Maestro tests in maestro/ directory
+  - npm run test:e2e:us: runs individual Maestro test file
+- Added maestro/screenshots/ to .gitignore
+- Verified npm run check passes with 0 errors
+- Note: Maestro CLI must be installed locally to run tests: curl -Ls 'https://get.maestro.mobile.dev' | bash

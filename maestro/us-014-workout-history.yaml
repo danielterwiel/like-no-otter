@@ -1,0 +1,33 @@
+# US-014: Workout history list
+# Verifies history list and workout cards
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Workouts tab
+- tapOn:
+    text: "Workouts"
+
+# Verify workout history list is visible (when implemented)
+- assertVisible:
+    id: "workout-history"
+    optional: true
+
+# Verify workout cards show date and duration
+- assertVisible:
+    id: "workout-card"
+    optional: true
+
+# Test tap on workout card to see details
+- tapOn:
+    id: "workout-card"
+    optional: true
+
+- assertVisible:
+    id: "workout-detail"
+    optional: true

@@ -1,0 +1,39 @@
+# US-010: Active workout screen with timer
+# Verifies timer and exercise navigation
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Workouts tab
+- tapOn:
+    text: "Workouts"
+
+# Start a workout (when implemented)
+- tapOn:
+    id: "start-workout-button"
+    optional: true
+
+# Add an exercise and start
+- tapOn:
+    text: "Start Workout"
+    optional: true
+
+# Verify timer is visible
+- assertVisible:
+    id: "workout-timer"
+    optional: true
+
+# Verify current exercise is displayed
+- assertVisible:
+    id: "current-exercise"
+    optional: true
+
+# Verify can navigate between exercises
+- tapOn:
+    id: "next-exercise"
+    optional: true

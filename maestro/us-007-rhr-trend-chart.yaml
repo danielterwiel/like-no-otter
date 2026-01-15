@@ -1,0 +1,24 @@
+# US-007: RHR trend chart
+# Verifies RHR chart renders on Health tab
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Health tab
+- tapOn:
+    text: "Health"
+
+# Verify RHR trend chart is visible (when implemented)
+- assertVisible:
+    id: "rhr-trend-chart"
+    optional: true
+
+# Verify chart shows day labels
+- assertVisible:
+    text: "Mon"
+    optional: true

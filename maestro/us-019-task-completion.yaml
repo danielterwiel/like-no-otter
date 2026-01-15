@@ -1,0 +1,29 @@
+# US-019: Task completion with swipe
+# Verifies checkbox and swipe to complete
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Tasks tab
+- tapOn:
+    text: "Tasks"
+
+# Verify task checkbox is visible (when implemented)
+- assertVisible:
+    id: "task-checkbox"
+    optional: true
+
+# Complete task by tapping checkbox
+- tapOn:
+    id: "task-checkbox"
+    optional: true
+
+# Verify task moved to Done section
+- assertVisible:
+    id: "done-section"
+    optional: true

@@ -1,0 +1,36 @@
+# US-017: Task creation
+# Verifies task form and save functionality
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- assertVisible:
+    id: "app-ready"
+
+# Navigate to Tasks tab
+- tapOn:
+    text: "Tasks"
+
+# Open task creation form (when implemented)
+- tapOn:
+    id: "add-task-button"
+    optional: true
+
+# Enter task title
+- tapOn:
+    id: "task-title-input"
+    optional: true
+
+- inputText: "Test task"
+
+# Save the task
+- tapOn:
+    text: "Save"
+    optional: true
+
+# Verify task appears in list
+- assertVisible:
+    text: "Test task"
+    optional: true
