@@ -77,8 +77,8 @@ async function translateMaestroCommand(
         }
 
         if (assert.text) {
-          // Look for text content
-          const element = page.getByText(assert.text);
+          // Look for text content - use first() to handle multiple matches
+          const element = page.getByText(assert.text).first();
           await element.waitFor({ state: "visible", timeout: 10000 });
         }
 
@@ -96,7 +96,15 @@ async function translateMaestroCommand(
         if (tap.id) {
           await page.locator(`[data-testid="${tap.id}"]`).click();
         } else if (tap.text) {
-          await page.getByText(tap.text).click();
+          // Try role=tab first for tab navigation, then fall back to text
+          const tabLocator = page.getByRole("tab", { name: tap.text });
+          const tabCount = await tabLocator.count();
+          if (tabCount === 1) {
+            await tabLocator.click();
+          } else {
+            // Fall back to first matching text element
+            await page.getByText(tap.text).first().click();
+          }
         }
         await page.waitForTimeout(500);
         return { success: true };
@@ -163,8 +171,12 @@ async function main() {
   }
 
   // Filter to only run tests for completed user stories
-  // For now, only run US-001 since that's the only one with actual implementation
-  const completedTests = testFiles.filter((f) => f.includes("us-001-app-launches"));
+  const completedTests = testFiles.filter(
+    (f) =>
+      f.includes("us-001-app-launches") ||
+      f.includes("us-002-database-setup") ||
+      f.includes("us-003-tab-navigation"),
+  );
 
   if (completedTests.length === 0) {
     console.log("No applicable tests found.");

@@ -27,22 +27,22 @@ appId: com.likenootter.app
     text: "Health"
 
 - assertVisible:
-    id: "health-tab"
+    id: "screen-health"
 
 - tapOn:
     text: "Workouts"
 
 - assertVisible:
-    id: "workouts-tab"
+    id: "screen-workouts"
 
 - tapOn:
     text: "Tasks"
 
 - assertVisible:
-    id: "tasks-tab"
+    id: "screen-tasks"
 
 - tapOn:
     text: "Today"
 
 - assertVisible:
-    id: "today-tab"
+    id: "screen-today"

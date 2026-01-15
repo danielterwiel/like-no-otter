@@ -110,7 +110,7 @@
         "Maestro test passes: maestro/us-003-tab-navigation.yaml"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Use Expo Router file-based routing"
     },
     {

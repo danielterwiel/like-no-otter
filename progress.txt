@@ -96,3 +96,37 @@ Completed:
 - Updated App.tsx to wrap content with DatabaseProvider
 - Created __tests__/db-schema.test.ts with unit tests for schema exports (6 tests)
 - Verified npm run check passes with 0 errors
+
+2026-01-15: US-003 - Tab navigation with Expo Router
+
+Completed:
+- Installed expo-router ~6.0.21 and dependencies (expo-linking, expo-constants, react-native-safe-area-context, react-native-screens)
+- Updated app.json with scheme: "likenootter" for deep linking
+- Updated package.json main entry point to "expo-router/entry"
+- Created app/_layout.tsx root layout:
+  - Wraps app with DatabaseProvider
+  - Configures Stack navigator with headerShown: false
+  - Includes StatusBar and PortalHost
+- Created app/(tabs)/_layout.tsx tab navigator:
+  - 4 tabs: Today, Health, Workouts, Tasks
+  - Custom TabIcon component with emoji icons
+  - Styled tab bar with theme colors
+- Created tab screen placeholders:
+  - app/(tabs)/index.tsx: Today dashboard with testID="app-ready" and testID="screen-today"
+  - app/(tabs)/health.tsx: Health tab with testID="screen-health"
+  - app/(tabs)/workouts.tsx: Workouts tab with testID="screen-workouts"
+  - app/(tabs)/tasks.tsx: Tasks tab with testID="screen-tasks"
+- Removed old entry files (index.ts, App.tsx) - now using expo-router entry
+- Updated lib/db/client.ts for web compatibility:
+  - Dynamic import of expo-sqlite to avoid native module errors on web
+  - Proxy-based mock db for web platform
+- Updated lib/db/hooks/useMigrations.ts for web compatibility:
+  - Skip SQLite initialization on web platform
+  - Dynamic import to avoid bundling native modules for web
+- Updated maestro/us-003-tab-navigation.yaml with correct testIDs
+- Updated scripts/e2e-runner.ts:
+  - Added US-002 and US-003 to completed tests list
+  - Improved tapOn to use role=tab selector for tab navigation
+  - Improved assertVisible to use first() for multiple text matches
+- All checks pass: npm run check (format, lint, types, tests, audit)
+- All E2E tests pass: us-001-app-launches, us-002-database-setup, us-003-tab-navigation

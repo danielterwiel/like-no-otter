@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import * as SQLite from "expo-sqlite";
+import { Platform } from "react-native";
 
 const DATABASE_NAME = "likenootter.db";
+const IS_WEB = Platform.OS === "web";
 
 const MIGRATIONS = [
   // Migration 001: Initial schema
@@ -65,7 +66,15 @@ export function useMigrations() {
 
   useEffect(() => {
     async function runMigrations() {
+      // Skip SQLite on web - expo-sqlite doesn't support web
+      if (IS_WEB) {
+        setIsReady(true);
+        return;
+      }
+
       try {
+        // Dynamic import to avoid loading native module on web
+        const SQLite = await import("expo-sqlite");
         const db = SQLite.openDatabaseSync(DATABASE_NAME);
 
         // Run all migrations in a transaction
