@@ -2,6 +2,11 @@
   "project": "like-no-otter",
   "branchName": "main",
   "description": "iOS health & workout tracker with simple task management. Combines HealthKit metrics, active workout logging, and a minimal task list.",
+  "maestro": {
+    "appId": "com.likenootter.app",
+    "testDir": "maestro",
+    "screenshotDir": "maestro/screenshots"
+  },
   "userStories": [
     {
       "id": "US-001",
@@ -19,6 +24,62 @@
       "notes": "Use Expo SDK 52 with New Architecture enabled by default"
     },
     {
+      "id": "US-001-VALIDATION",
+      "title": "Validation pipeline with Lefthook",
+      "description": "Configure oxlint, oxfmt, vitest, TypeScript checks, and npm audit with Lefthook pre-commit hooks",
+      "acceptanceCriteria": [
+        "oxlint installed and configured with recommended rules",
+        "oxfmt installed and configured for TypeScript/TSX files",
+        "vitest installed with initial config (vitest.config.ts)",
+        "lefthook.yml configures pre-commit hooks for all checks",
+        "npm run check runs: oxfmt --check, oxlint, tsc --noEmit, vitest run, npm audit",
+        "npm run fix runs: oxfmt and oxlint --fix",
+        "Pre-commit hook blocks commits unless all checks pass",
+        "package.json postinstall runs lefthook install",
+        "All existing code passes validation pipeline"
+      ],
+      "priority": 1.1,
+      "passes": false,
+      "notes": "Ralph-loop ready: nothing commits unless check exits 0"
+    },
+    {
+      "id": "US-001-E2E",
+      "title": "Maestro E2E testing setup",
+      "description": "Configure Maestro for E2E testing with test files for all user stories",
+      "acceptanceCriteria": [
+        "app.json has bundleIdentifier (iOS) and package (Android) set to com.likenootter.app",
+        "maestro/ directory exists with config.yaml",
+        "maestro/us-001-app-launches.yaml verifies app launches and shows title",
+        "maestro/us-002-database-setup.yaml verifies app launches after DB setup",
+        "maestro/us-003-tab-navigation.yaml verifies 4 tabs visible and navigable",
+        "maestro/us-004-seed-exercises.yaml verifies exercise search returns results",
+        "maestro/us-005-healthkit-permissions.yaml verifies onboarding flow",
+        "maestro/us-006-health-metrics-cards.yaml verifies health cards display",
+        "maestro/us-007-rhr-trend-chart.yaml verifies RHR chart renders",
+        "maestro/us-008-healthkit-sync.yaml verifies offline data access",
+        "maestro/us-009-workout-setup.yaml verifies exercise search and queue",
+        "maestro/us-010-active-workout.yaml verifies timer and exercise navigation",
+        "maestro/us-011-set-logging.yaml verifies weight/reps input and save",
+        "maestro/us-012-rest-timer.yaml verifies rest timer and skip",
+        "maestro/us-013-workout-summary.yaml verifies summary screen and save",
+        "maestro/us-014-workout-history.yaml verifies history list and cards",
+        "maestro/us-015-muscle-frequency-chart.yaml verifies bar chart",
+        "maestro/us-016-healthkit-write.yaml verifies workout sync status",
+        "maestro/us-017-task-creation.yaml verifies task form and save",
+        "maestro/us-018-task-list-view.yaml verifies section grouping",
+        "maestro/us-019-task-completion.yaml verifies checkbox and swipe",
+        "maestro/us-020-loading-empty-states.yaml verifies skeletons and empty states",
+        "maestro/us-021-error-handling.yaml verifies offline resilience",
+        "package.json has test:e2e and test:e2e:us scripts",
+        ".gitignore includes maestro/screenshots/",
+        "App.tsx has testID='app-ready' and testID='app-title' for US-001 verification",
+        "Maestro test passes: maestro/us-001-app-launches.yaml"
+      ],
+      "priority": 1.5,
+      "passes": false,
+      "notes": "Install Maestro CLI locally: curl -Ls 'https://get.maestro.mobile.dev' | bash"
+    },
+    {
       "id": "US-002",
       "title": "Database setup with Drizzle and SQLite",
       "description": "Configure expo-sqlite with Drizzle ORM, create schema files, and run initial migration",
@@ -27,7 +88,8 @@
         "lib/db/schema/ directory exists with workouts.ts, health.ts, tasks.ts",
         "lib/db/client.ts exports configured Drizzle client",
         "Database tables created on app start via useMigrations hook",
-        "Can insert and query a test record"
+        "Can insert and query a test record",
+        "Maestro test passes: maestro/us-002-database-setup.yaml"
       ],
       "priority": 2,
       "passes": false,
@@ -44,7 +106,8 @@
         "app/(tabs)/workouts.tsx renders Workouts tab placeholder",
         "app/(tabs)/tasks.tsx renders Tasks tab placeholder",
         "Tab bar shows icons and labels for each tab",
-        "Navigation between tabs works smoothly"
+        "Navigation between tabs works smoothly",
+        "Maestro test passes: maestro/us-003-tab-navigation.yaml"
       ],
       "priority": 3,
       "passes": false,
@@ -60,7 +123,8 @@
         "Exercises cover: chest, back, shoulders, biceps, triceps, quads, hamstrings, glutes, calves, abs",
         "Categories include: barbell, dumbbell, machine, cable, bodyweight",
         "Seed function inserts exercises on first app launch",
-        "Can query exercises by muscle group"
+        "Can query exercises by muscle group",
+        "Maestro test passes: maestro/us-004-seed-exercises.yaml"
       ],
       "priority": 4,
       "passes": false,
@@ -76,7 +140,8 @@
         "Onboarding screen explains what health data will be accessed",
         "Authorization request includes: sleep, steps, active energy, resting heart rate",
         "Authorization denial handled gracefully with settings deep link",
-        "Authorization status persisted to prevent re-asking"
+        "Authorization status persisted to prevent re-asking",
+        "Maestro test passes: maestro/us-005-healthkit-permissions.yaml"
       ],
       "priority": 5,
       "passes": false,
@@ -93,7 +158,8 @@
         "RHRCard shows resting heart rate in BPM",
         "Cards use react-native-reusables Card component",
         "Loading state shown while fetching from HealthKit",
-        "Empty state shown if no data available"
+        "Empty state shown if no data available",
+        "Maestro test passes: maestro/us-006-health-metrics-cards.yaml"
       ],
       "priority": 6,
       "passes": false,
@@ -110,7 +176,8 @@
         "Tapping data point shows exact value and date",
         "Missing days show gaps in chart (not connected)",
         "Empty state if less than 3 days of data",
-        "Chart renders at 60 FPS"
+        "Chart renders at 60 FPS",
+        "Maestro test passes: maestro/us-007-rhr-trend-chart.yaml"
       ],
       "priority": 7,
       "passes": false,
@@ -126,7 +193,8 @@
         "health_metrics table stores cached data with syncedAt timestamp",
         "Sync runs on app foreground via AppState listener",
         "TanStack Query cache invalidated after sync",
-        "Sync errors logged but don't crash app"
+        "Sync errors logged but don't crash app",
+        "Maestro test passes: maestro/us-008-healthkit-sync.yaml"
       ],
       "priority": 8,
       "passes": false,
@@ -144,7 +212,8 @@
         "Selected exercises shown in reorderable list",
         "Can remove exercise from queue",
         "Start Workout button navigates to active workout",
-        "FlashList used for exercise list performance"
+        "FlashList used for exercise list performance",
+        "Maestro test passes: maestro/us-009-workout-setup.yaml"
       ],
       "priority": 9,
       "passes": false,
@@ -162,7 +231,8 @@
         "Can navigate between exercises in queue",
         "Finish Workout button ends session",
         "Tab bar hidden during active workout",
-        "XState workoutMachine manages all state transitions"
+        "XState workoutMachine manages all state transitions",
+        "Maestro test passes: maestro/us-010-active-workout.yaml"
       ],
       "priority": 10,
       "passes": false,
@@ -179,7 +249,8 @@
         "Add Set button saves set and shows in list below",
         "Previous sets for current exercise visible",
         "Can delete a set if entered incorrectly",
-        "Sets saved to SQLite immediately (offline-safe)"
+        "Sets saved to SQLite immediately (offline-safe)",
+        "Maestro test passes: maestro/us-011-set-logging.yaml"
       ],
       "priority": 11,
       "passes": false,
@@ -196,7 +267,8 @@
         "Skip Rest button immediately ends timer",
         "Timer emits vibration/haptic when complete",
         "Rest duration configurable via settings (30s to 5min)",
-        "XState restTimer state handles all logic"
+        "XState restTimer state handles all logic",
+        "Maestro test passes: maestro/us-012-rest-timer.yaml"
       ],
       "priority": 12,
       "passes": false,
@@ -212,7 +284,8 @@
         "Muscle groups trained shown as tags",
         "Save button commits workout to SQLite",
         "Success confirmation navigates back to Workouts tab",
-        "Workout appears in history list immediately"
+        "Workout appears in history list immediately",
+        "Maestro test passes: maestro/us-013-workout-summary.yaml"
       ],
       "priority": 13,
       "passes": false,
@@ -228,7 +301,8 @@
         "Tapping workout card opens detail view",
         "Empty state shown if no workouts logged",
         "Pull-to-refresh reloads from database",
-        "Maintains 60 FPS with 100+ workouts"
+        "Maintains 60 FPS with 100+ workouts",
+        "Maestro test passes: maestro/us-014-workout-history.yaml"
       ],
       "priority": 14,
       "passes": false,
@@ -245,7 +319,8 @@
         "Bars colored by muscle group",
         "Tapping bar shows exact count",
         "Data aggregated from last 4 weeks of workouts",
-        "Empty state if no workout data"
+        "Empty state if no workout data",
+        "Maestro test passes: maestro/us-015-muscle-frequency-chart.yaml"
       ],
       "priority": 15,
       "passes": false,
@@ -261,7 +336,8 @@
         "Include: start time, end time, total calories (estimated)",
         "Write succeeds or fails silently (don't block user)",
         "Retry failed writes on next app launch",
-        "Workout appears in Apple Health app"
+        "Workout appears in Apple Health app",
+        "Maestro test passes: maestro/us-016-healthkit-write.yaml"
       ],
       "priority": 16,
       "passes": false,
@@ -278,7 +354,8 @@
         "Priority selector: none, low, medium, high",
         "Save button creates task in SQLite",
         "New task appears in list immediately",
-        "Can create task without due date"
+        "Can create task without due date",
+        "Maestro test passes: maestro/us-017-task-creation.yaml"
       ],
       "priority": 17,
       "passes": false,
@@ -295,7 +372,8 @@
         "Done section: completed tasks (collapsed by default)",
         "Tasks sorted by due date within sections",
         "Priority shown as colored indicator",
-        "Empty state for each section if no tasks"
+        "Empty state for each section if no tasks",
+        "Maestro test passes: maestro/us-018-task-list-view.yaml"
       ],
       "priority": 18,
       "passes": false,
@@ -311,7 +389,8 @@
         "Completed tasks move to Done section",
         "Completion timestamp saved to database",
         "Can uncomplete a task by tapping again",
-        "Haptic feedback on completion"
+        "Haptic feedback on completion",
+        "Maestro test passes: maestro/us-019-task-completion.yaml"
       ],
       "priority": 19,
       "passes": false,
@@ -327,7 +406,8 @@
         "Empty state with illustration when no workouts exist",
         "Empty state with illustration when no tasks exist",
         "Empty state when HealthKit authorization denied",
-        "All states use consistent styling"
+        "All states use consistent styling",
+        "Maestro test passes: maestro/us-020-loading-empty-states.yaml"
       ],
       "priority": 20,
       "passes": false,
@@ -343,7 +423,8 @@
         "All reads work offline (from SQLite)",
         "TanStack Query configured with offlineFirst networkMode",
         "Sync errors shown as non-blocking toast",
-        "App functional without network connection"
+        "App functional without network connection",
+        "Maestro test passes: maestro/us-021-error-handling.yaml"
       ],
       "priority": 21,
       "passes": false,
