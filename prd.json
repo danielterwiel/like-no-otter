@@ -77,7 +77,7 @@
       ],
       "priority": 1.5,
       "passes": true,
-      "notes": "Install Maestro CLI locally: curl -Ls 'https://get.maestro.mobile.dev' | bash"
+      "notes": "E2E tests run against Expo web via Playwright (Docker-compatible). Maestro YAML files in maestro/ are parsed by scripts/e2e-runner.ts. For local Maestro testing: curl -Ls 'https://get.maestro.mobile.dev' | bash && npm run test:e2e:maestro"
     },
     {
       "id": "US-002",

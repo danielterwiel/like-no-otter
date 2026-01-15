@@ -14,8 +14,15 @@ yarn start              # Start Expo dev server
 yarn ios                # Run on iOS simulator
 yarn android            # Run on Android emulator
 
-# Type checking
+# Quality checks
+npm run check           # Run all checks (format, lint, types, tests, audit)
+npm run fix             # Auto-fix formatting and lint issues
 npx tsc --noEmit        # Check types without emitting
+
+# Testing
+npm run test            # Run Vitest unit tests
+npm run test:e2e        # Run E2E tests (Playwright against Expo web)
+npm run test:e2e:maestro # Run E2E tests with Maestro (requires local install)
 ```
 
 ## Architecture
@@ -49,7 +56,7 @@ import { cn } from "@/lib/utils";
 - **State**: XState for workout state machine
 - **Data fetching**: TanStack Query with offline-first mode
 - **Navigation**: Expo Router with 4-tab layout (Today, Health, Workouts, Tasks)
-- **Testing**: Vitest for unit tests, Maestro for E2E
+- **Testing**: Vitest for unit tests, Playwright for E2E (web mode, Docker-compatible)
 
 ## UI Components
 
