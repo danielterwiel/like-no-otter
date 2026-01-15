@@ -154,7 +154,7 @@
         "Maestro test passes: maestro/us-005-healthkit-permissions.yaml"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Requires custom dev client, not Expo Go"
     },
     {

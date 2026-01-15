@@ -123,6 +123,29 @@ async function translateMaestroCommand(
         return { success: false, error: String(error) };
       }
     }
+
+    // extendedWaitUntil
+    if ("extendedWaitUntil" in cmd) {
+      const wait = cmd.extendedWaitUntil as Record<string, unknown>;
+      const timeout = (wait.timeout as number) || 10000;
+
+      try {
+        if (wait.visible && typeof wait.visible === "object") {
+          const visible = wait.visible as Record<string, string>;
+          if (visible.id) {
+            const element = page.locator(`[data-testid="${visible.id}"]`);
+            await element.waitFor({ state: "visible", timeout });
+          }
+          if (visible.text) {
+            const element = page.getByText(visible.text).first();
+            await element.waitFor({ state: "visible", timeout });
+          }
+        }
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: `extendedWaitUntil failed: ${error}` };
+      }
+    }
   }
 
   return { success: true };
@@ -176,7 +199,8 @@ async function main() {
       f.includes("us-001-app-launches") ||
       f.includes("us-002-database-setup") ||
       f.includes("us-003-tab-navigation") ||
-      f.includes("us-004-seed-exercises"),
+      f.includes("us-004-seed-exercises") ||
+      f.includes("us-005-healthkit-permissions"),
   );
 
   if (completedTests.length === 0) {

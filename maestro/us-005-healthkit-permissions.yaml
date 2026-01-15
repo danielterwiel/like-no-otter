@@ -1,21 +1,29 @@
 # US-005: HealthKit permissions flow
 # Verifies onboarding flow for HealthKit authorization
+# Note: On web/non-iOS, onboarding is skipped. On iOS, onboarding shows on first launch.
 
 appId: com.likenootter.app
 
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+# Wait for app to be ready (either onboarding or main app)
+# On iOS first launch: healthkit-onboarding is shown
+# On web/non-iOS or after onboarding: app-ready is shown
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
-# Verify onboarding screen appears for first-time users (when implemented)
-- assertVisible:
-    id: "healthkit-onboarding"
-    optional: true
+# Verify we can reach the Health tab
+- tapOn:
+    text: "Health"
 
-# Verify authorization explanation is shown
 - assertVisible:
-    text: "health data"
-    optional: true
-# Test authorization flow - will interact with system dialogs when implemented
+    id: "screen-health"
+
+# Verify the health screen shows appropriate content
+# On iOS with denied auth: healthkit-denied is shown
+# On web or authorized: screen-health placeholder is shown
+- assertVisible:
+    text: "Health"

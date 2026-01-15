@@ -172,3 +172,49 @@ Completed:
   - Verifies search input is present
 - Updated scripts/e2e-runner.ts to include US-004 in completed tests
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-15: US-005 - HealthKit permissions flow
+
+Completed:
+- Installed react-native-health package for Apple HealthKit integration
+- Installed @react-native-async-storage/async-storage for persisting authorization state
+- Installed @expo/vector-icons for UI icons (Ionicons)
+- Configured app.json with react-native-health Expo config plugin:
+  - Added NSHealthShareUsageDescription for reading health data
+  - Added NSHealthUpdateUsageDescription for writing workout data
+- Created lib/health/healthkit.ts with HealthKit service:
+  - Platform-specific implementations (iOS vs web/other)
+  - Dynamic import of react-native-health to avoid bundling on non-iOS
+  - isAvailable(): checks if HealthKit is available
+  - getAuthStatus(): returns cached authorization status
+  - requestAuthorization(): requests permissions for sleep, steps, calories, RHR
+  - openHealthSettings(): deep links to Health app or Settings
+- Created lib/health/index.ts to export health module
+- Created providers/HealthKitProvider.tsx:
+  - Manages HealthKit authorization state via React context
+  - Persists onboarding completion status to AsyncStorage
+  - Provides useHealthKit() hook with: isAvailable, authStatus, hasCompletedOnboarding, isLoading, requestAuthorization, openSettings, completeOnboarding, skipOnboarding
+- Created components/HealthKitOnboarding.tsx:
+  - Onboarding screen explaining health data access
+  - Shows icons and descriptions for: Sleep, Steps, Calories, Heart Rate
+  - Privacy note explaining data stays on device
+  - "Connect Apple Health" button to request authorization
+  - "Skip for now" button to bypass onboarding
+- Created components/HealthKitDenied.tsx:
+  - Shown on Health tab when authorization is denied
+  - "Open Health Settings" button with deep link
+  - "Try Again" button to re-request authorization
+- Updated app/_layout.tsx:
+  - Added HealthKitProvider wrapping app content
+  - Shows loading state while checking HealthKit availability
+  - Conditionally shows HealthKitOnboarding for first-time iOS users
+- Updated app/(tabs)/health.tsx:
+  - Shows HealthKitDenied component when authorization denied on iOS
+  - Shows appropriate message for non-iOS devices
+- Updated maestro/us-005-healthkit-permissions.yaml for E2E testing:
+  - Uses extendedWaitUntil for app-ready
+  - Navigates to Health tab and verifies content
+- Updated scripts/e2e-runner.ts:
+  - Added extendedWaitUntil command support
+  - Added US-005 to completed tests list
+- All checks pass: npm run check (format, lint, types, tests, audit)
