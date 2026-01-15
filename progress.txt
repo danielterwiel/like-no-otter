@@ -130,3 +130,45 @@ Completed:
   - Improved assertVisible to use first() for multiple text matches
 - All checks pass: npm run check (format, lint, types, tests, audit)
 - All E2E tests pass: us-001-app-launches, us-002-database-setup, us-003-tab-navigation
+
+2026-01-15: US-004 - Seed exercise database
+
+Completed:
+- Created constants/exercises.ts with 100 exercises covering all muscle groups:
+  - Chest: 16 exercises (barbell, dumbbell, machine, cable, bodyweight)
+  - Back: 16 exercises (barbell, dumbbell, cable, bodyweight)
+  - Shoulders: 12 exercises (barbell, dumbbell, machine, cable)
+  - Biceps: 9 exercises (barbell, dumbbell, cable)
+  - Triceps: 10 exercises (barbell, dumbbell, cable, bodyweight)
+  - Quads: 12 exercises (barbell, dumbbell, machine, bodyweight)
+  - Hamstrings: 8 exercises (barbell, dumbbell, machine)
+  - Glutes: 8 exercises (barbell, dumbbell, cable, bodyweight)
+  - Calves: 5 exercises (machine, dumbbell, bodyweight)
+  - Abs: 8 exercises (bodyweight, cable, machine)
+- Defined TypeScript types: MuscleGroup, ExerciseCategory, Exercise interface
+- Created lib/db/seed.ts with seedExercises() function:
+  - Checks if exercises already exist before seeding
+  - Inserts all 100 exercises in a single transaction
+  - Handles errors gracefully without crashing app
+- Updated providers/DatabaseProvider.tsx:
+  - Runs seedExercises() after migrations complete
+  - Tracks seeding state separately from migration state
+  - Shows loading state until both migration and seeding complete
+- Created lib/db/queries/exercises.ts with query functions:
+  - getAllExercises(): returns all exercises from database
+  - getExercisesByMuscle(muscle): filters by primary or secondary muscle
+  - getExercisesByCategory(category): filters by equipment category
+  - searchExercises(query): searches by exercise name
+  - getExerciseCount(): returns total exercise count
+- Updated lib/db/index.ts to export query functions
+- Updated app/(tabs)/workouts.tsx with exercise search UI:
+  - Displays exercise count after seeding
+  - Search input with live filtering
+  - FlatList showing matching exercises
+  - Shows exercise category and primary muscles
+- Updated maestro/us-004-seed-exercises.yaml for E2E testing:
+  - Navigates to Workouts tab
+  - Verifies exercise count is displayed
+  - Verifies search input is present
+- Updated scripts/e2e-runner.ts to include US-004 in completed tests
+- All checks pass: npm run check (format, lint, types, tests, audit)

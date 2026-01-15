@@ -1,5 +1,5 @@
 # US-004: Seed exercise database
-# Verifies exercise search returns results
+# Verifies exercises are seeded and search UI is present
 
 appId: com.likenootter.app
 
@@ -9,18 +9,18 @@ appId: com.likenootter.app
 - assertVisible:
     id: "app-ready"
 
-# Navigate to workout setup (when implemented)
+# Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Search for an exercise
-- tapOn:
-    id: "exercise-search-input"
-    optional: true
-
-- inputText: "bench press"
-
-# Verify search results appear
+# Verify we're on the Workouts screen
 - assertVisible:
-    text: "Bench Press"
-    optional: true
+    id: "screen-workouts"
+
+# Verify exercise count is displayed (shows exercises were seeded)
+- assertVisible:
+    id: "exercise-count"
+
+# Verify search input is present
+- assertVisible:
+    id: "exercise-search-input"

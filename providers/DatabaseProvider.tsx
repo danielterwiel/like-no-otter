@@ -1,8 +1,9 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useMigrations } from "@/lib/db";
 import { db, type Database } from "@/lib/db";
 import { Text } from "@/components/ui/text";
+import { seedExercises } from "@/lib/db/seed";
 
 const DatabaseContext = createContext<Database | null>(null);
 
@@ -19,7 +20,20 @@ interface DatabaseProviderProps {
 }
 
 export function DatabaseProvider({ children }: DatabaseProviderProps) {
-  const { isReady, error } = useMigrations();
+  const { isReady: migrationsReady, error } = useMigrations();
+  const [isSeeded, setIsSeeded] = useState(false);
+
+  useEffect(() => {
+    async function runSeeding() {
+      if (migrationsReady && !isSeeded) {
+        await seedExercises();
+        setIsSeeded(true);
+      }
+    }
+    runSeeding();
+  }, [migrationsReady, isSeeded]);
+
+  const isReady = migrationsReady && isSeeded;
 
   if (error) {
     return (

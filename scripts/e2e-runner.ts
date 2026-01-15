@@ -175,7 +175,8 @@ async function main() {
     (f) =>
       f.includes("us-001-app-launches") ||
       f.includes("us-002-database-setup") ||
-      f.includes("us-003-tab-navigation"),
+      f.includes("us-003-tab-navigation") ||
+      f.includes("us-004-seed-exercises"),
   );
 
   if (completedTests.length === 0) {

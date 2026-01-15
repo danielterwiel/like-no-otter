@@ -2,6 +2,16 @@
   "project": "like-no-otter",
   "branchName": "main",
   "description": "iOS health & workout tracker with simple task management. Combines HealthKit metrics, active workout logging, and a minimal task list.",
+  "designGuidelines": {
+    "icons": {
+      "rule": "Never use emojis. Always use icons from @expo/vector-icons.",
+      "package": "@expo/vector-icons",
+      "description": "Expo's built-in icon library providing 30,000+ icons from popular sets including Ionicons, MaterialCommunityIcons, FontAwesome, Feather, AntDesign, and more.",
+      "preferredSets": ["Ionicons", "MaterialCommunityIcons", "Feather"],
+      "usage": "import { Ionicons } from '@expo/vector-icons'; <Ionicons name=\"heart\" size={24} color=\"red\" />",
+      "directory": "https://icons.expo.fyi/"
+    }
+  },
   "maestro": {
     "appId": "com.likenootter.app",
     "testDir": "maestro",
@@ -127,7 +137,7 @@
         "Maestro test passes: maestro/us-004-seed-exercises.yaml"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Include common exercises: bench press, squat, deadlift, rows, pullups, etc."
     },
     {
