@@ -1,0 +1,9 @@
+{
+  "$schema": "https://reactnativereusables.com/schema.json",
+  "styling": "nativewind",
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "lib": "@/lib"
+  }
+}

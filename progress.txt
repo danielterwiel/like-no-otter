@@ -1,0 +1,19 @@
+2026-01-15: US-001 - Project setup with Expo and TypeScript
+
+Completed:
+- Initialized Expo SDK 54 project with TypeScript template (SDK 54 is the current latest, supersedes SDK 52)
+- New Architecture enabled by default (newArchEnabled: true in app.json)
+- Configured NativeWind v4 with tailwind.config.js
+  - Created metro.config.js with withNativeWind
+  - Created babel.config.js with nativewind/babel preset
+  - Created global.css with CSS variables for theming (light/dark mode)
+  - Created nativewind-env.d.ts for TypeScript support
+- Installed and configured react-native-reusables
+  - Installed dependencies: tailwindcss-animate, class-variance-authority, clsx, tailwind-merge, @rn-primitives/portal
+  - Created lib/utils.ts with cn() helper function
+  - Created components.json for CLI configuration
+  - Created components/ui/text.tsx as a sample reusable component
+  - Updated tailwind.config.js with theme colors (border, input, ring, background, foreground, primary, secondary, destructive, muted, accent, popover, card)
+- App.tsx renders styled Text component with NativeWind classes
+- App runs with 'npx expo start' without errors
+- TypeScript type checking passes (npx tsc --noEmit)

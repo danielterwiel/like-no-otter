@@ -1,0 +1,353 @@
+{
+  "project": "like-no-otter",
+  "branchName": "main",
+  "description": "iOS health & workout tracker with simple task management. Combines HealthKit metrics, active workout logging, and a minimal task list.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Project setup with Expo and TypeScript",
+      "description": "Initialize Expo SDK 52 project with TypeScript, NativeWind v4, and react-native-reusables",
+      "acceptanceCriteria": [
+        "npx create-expo-app creates project with TypeScript template",
+        "NativeWind v4 configured with tailwind.config.js",
+        "react-native-reusables installed and configured",
+        "App runs with 'npx expo start' without errors",
+        "Basic App.tsx renders a styled Text component"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Use Expo SDK 52 with New Architecture enabled by default"
+    },
+    {
+      "id": "US-002",
+      "title": "Database setup with Drizzle and SQLite",
+      "description": "Configure expo-sqlite with Drizzle ORM, create schema files, and run initial migration",
+      "acceptanceCriteria": [
+        "expo-sqlite ~15.x and drizzle-orm installed",
+        "lib/db/schema/ directory exists with workouts.ts, health.ts, tasks.ts",
+        "lib/db/client.ts exports configured Drizzle client",
+        "Database tables created on app start via useMigrations hook",
+        "Can insert and query a test record"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Use JSI synchronous API for best performance"
+    },
+    {
+      "id": "US-003",
+      "title": "Tab navigation with Expo Router",
+      "description": "Create 4-tab bottom navigation: Today, Health, Workouts, Tasks",
+      "acceptanceCriteria": [
+        "app/(tabs)/_layout.tsx configures tab navigator",
+        "app/(tabs)/index.tsx renders Today dashboard placeholder",
+        "app/(tabs)/health.tsx renders Health tab placeholder",
+        "app/(tabs)/workouts.tsx renders Workouts tab placeholder",
+        "app/(tabs)/tasks.tsx renders Tasks tab placeholder",
+        "Tab bar shows icons and labels for each tab",
+        "Navigation between tabs works smoothly"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Use Expo Router file-based routing"
+    },
+    {
+      "id": "US-004",
+      "title": "Seed exercise database",
+      "description": "Create exercises table schema and seed with 100 common exercises categorized by muscle group",
+      "acceptanceCriteria": [
+        "exercises table has: id, name, category, primaryMuscles, secondaryMuscles, isCustom",
+        "constants/exercises.ts contains 100 exercises array",
+        "Exercises cover: chest, back, shoulders, biceps, triceps, quads, hamstrings, glutes, calves, abs",
+        "Categories include: barbell, dumbbell, machine, cable, bodyweight",
+        "Seed function inserts exercises on first app launch",
+        "Can query exercises by muscle group"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "Include common exercises: bench press, squat, deadlift, rows, pullups, etc."
+    },
+    {
+      "id": "US-005",
+      "title": "HealthKit permissions flow",
+      "description": "Request HealthKit authorization during onboarding for sleep, steps, calories, heart rate",
+      "acceptanceCriteria": [
+        "react-native-health installed with Expo config plugin",
+        "Info.plist contains NSHealthShareUsageDescription and NSHealthUpdateUsageDescription",
+        "Onboarding screen explains what health data will be accessed",
+        "Authorization request includes: sleep, steps, active energy, resting heart rate",
+        "Authorization denial handled gracefully with settings deep link",
+        "Authorization status persisted to prevent re-asking"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": "Requires custom dev client, not Expo Go"
+    },
+    {
+      "id": "US-006",
+      "title": "Health metrics cards",
+      "description": "Display sleep, steps, calories, and resting heart rate on Health tab",
+      "acceptanceCriteria": [
+        "SleepCard shows total sleep hours and start/end times",
+        "StepsCard shows step count with formatting (e.g., '12,534 steps')",
+        "CaloriesCard shows active calories burned",
+        "RHRCard shows resting heart rate in BPM",
+        "Cards use react-native-reusables Card component",
+        "Loading state shown while fetching from HealthKit",
+        "Empty state shown if no data available"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "Query HealthKit for today's data"
+    },
+    {
+      "id": "US-007",
+      "title": "RHR trend chart",
+      "description": "Display 7-day resting heart rate line chart on Health tab",
+      "acceptanceCriteria": [
+        "Victory Native line chart shows last 7 days of RHR",
+        "X-axis shows day labels (Mon, Tue, Wed...)",
+        "Y-axis shows BPM auto-scaled to data range",
+        "Tapping data point shows exact value and date",
+        "Missing days show gaps in chart (not connected)",
+        "Empty state if less than 3 days of data",
+        "Chart renders at 60 FPS"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": "Use Victory Native for charting"
+    },
+    {
+      "id": "US-008",
+      "title": "HealthKit sync service",
+      "description": "Sync HealthKit data to SQLite on app foreground for offline viewing",
+      "acceptanceCriteria": [
+        "lib/health/sync.ts exports syncHealthData function",
+        "Syncs sleep, steps, calories, RHR for last 30 days",
+        "health_metrics table stores cached data with syncedAt timestamp",
+        "Sync runs on app foreground via AppState listener",
+        "TanStack Query cache invalidated after sync",
+        "Sync errors logged but don't crash app"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": "Offline-first: always read from SQLite, sync in background"
+    },
+    {
+      "id": "US-009",
+      "title": "Workout setup screen",
+      "description": "Screen to search and select exercises before starting workout",
+      "acceptanceCriteria": [
+        "app/(modals)/workout-setup.tsx modal screen",
+        "Search input filters exercises by name",
+        "Exercise list grouped by category (barbell, dumbbell, etc.)",
+        "Tapping exercise adds it to workout queue",
+        "Selected exercises shown in reorderable list",
+        "Can remove exercise from queue",
+        "Start Workout button navigates to active workout",
+        "FlashList used for exercise list performance"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": "ExerciseSearch component with debounced search"
+    },
+    {
+      "id": "US-010",
+      "title": "Active workout screen with timer",
+      "description": "Full-screen workout mode showing elapsed time and current exercise",
+      "acceptanceCriteria": [
+        "app/(modals)/active-workout.tsx modal screen",
+        "Running workout timer shows HH:MM:SS",
+        "Current exercise name displayed prominently",
+        "Previous workout comparison shown if available",
+        "Can navigate between exercises in queue",
+        "Finish Workout button ends session",
+        "Tab bar hidden during active workout",
+        "XState workoutMachine manages all state transitions"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": "Timer runs in XState context, persists if app backgrounded"
+    },
+    {
+      "id": "US-011",
+      "title": "Set logging",
+      "description": "Log weight and reps for each set during workout",
+      "acceptanceCriteria": [
+        "Weight input accepts numeric value (lbs or kg)",
+        "Reps input accepts integer value",
+        "Set type toggle: Normal or Warmup",
+        "Add Set button saves set and shows in list below",
+        "Previous sets for current exercise visible",
+        "Can delete a set if entered incorrectly",
+        "Sets saved to SQLite immediately (offline-safe)"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": "SetRow component for each logged set"
+    },
+    {
+      "id": "US-012",
+      "title": "Rest timer with skip",
+      "description": "Configurable rest timer between sets with skip option",
+      "acceptanceCriteria": [
+        "Rest timer starts automatically after completing a set",
+        "Default rest duration: 90 seconds",
+        "Timer shows countdown in MM:SS format",
+        "Skip Rest button immediately ends timer",
+        "Timer emits vibration/haptic when complete",
+        "Rest duration configurable via settings (30s to 5min)",
+        "XState restTimer state handles all logic"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": "Use Expo Haptics for timer completion"
+    },
+    {
+      "id": "US-013",
+      "title": "Workout summary and save",
+      "description": "Show workout summary and save to database on completion",
+      "acceptanceCriteria": [
+        "Summary screen shows: total duration, total volume (weight x reps)",
+        "List of exercises completed with set counts",
+        "Muscle groups trained shown as tags",
+        "Save button commits workout to SQLite",
+        "Success confirmation navigates back to Workouts tab",
+        "Workout appears in history list immediately"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": "Calculate total volume as sum of (weight * reps) across all sets"
+    },
+    {
+      "id": "US-014",
+      "title": "Workout history list",
+      "description": "Display past workouts on Workouts tab with FlashList",
+      "acceptanceCriteria": [
+        "FlashList renders workout history sorted by date (newest first)",
+        "Each workout card shows: date, duration, exercises count, muscle groups",
+        "Tapping workout card opens detail view",
+        "Empty state shown if no workouts logged",
+        "Pull-to-refresh reloads from database",
+        "Maintains 60 FPS with 100+ workouts"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": "WorkoutCard component for list items"
+    },
+    {
+      "id": "US-015",
+      "title": "Muscle frequency chart",
+      "description": "Bar chart showing sets per muscle group over last 4 weeks",
+      "acceptanceCriteria": [
+        "Victory Native bar chart on Workouts tab",
+        "X-axis shows muscle groups (chest, back, shoulders, etc.)",
+        "Y-axis shows total sets count",
+        "Bars colored by muscle group",
+        "Tapping bar shows exact count",
+        "Data aggregated from last 4 weeks of workouts",
+        "Empty state if no workout data"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": "Helps identify muscle imbalances"
+    },
+    {
+      "id": "US-016",
+      "title": "Write workout to HealthKit",
+      "description": "Save completed workout to Apple Health as HKWorkout",
+      "acceptanceCriteria": [
+        "After workout save, create HKWorkout record",
+        "Workout type: strength training",
+        "Include: start time, end time, total calories (estimated)",
+        "Write succeeds or fails silently (don't block user)",
+        "Retry failed writes on next app launch",
+        "Workout appears in Apple Health app"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": "Use react-native-health saveWorkout method"
+    },
+    {
+      "id": "US-017",
+      "title": "Task creation",
+      "description": "Create tasks with title, due date, and priority",
+      "acceptanceCriteria": [
+        "Add task button on Tasks tab opens creation form",
+        "Title input (required)",
+        "Due date picker (optional)",
+        "Priority selector: none, low, medium, high",
+        "Save button creates task in SQLite",
+        "New task appears in list immediately",
+        "Can create task without due date"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": "Single flat task list, no subtasks or tags"
+    },
+    {
+      "id": "US-018",
+      "title": "Task list view",
+      "description": "Display tasks grouped by Today, Upcoming, and Done sections",
+      "acceptanceCriteria": [
+        "FlashList renders tasks on Tasks tab",
+        "Today section: tasks due today or overdue",
+        "Upcoming section: tasks due in future",
+        "Done section: completed tasks (collapsed by default)",
+        "Tasks sorted by due date within sections",
+        "Priority shown as colored indicator",
+        "Empty state for each section if no tasks"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": "Simple agenda-style view, no calendar"
+    },
+    {
+      "id": "US-019",
+      "title": "Task completion with swipe",
+      "description": "Mark tasks complete by tapping checkbox or swiping",
+      "acceptanceCriteria": [
+        "Checkbox on each task row toggles completion",
+        "Swipe right reveals complete action",
+        "Completed tasks move to Done section",
+        "Completion timestamp saved to database",
+        "Can uncomplete a task by tapping again",
+        "Haptic feedback on completion"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": "Use react-native-gesture-handler for swipe"
+    },
+    {
+      "id": "US-020",
+      "title": "Loading states and empty states",
+      "description": "Add skeleton loaders and empty state illustrations throughout app",
+      "acceptanceCriteria": [
+        "Skeleton loader shown while health data loads",
+        "Skeleton loader shown while workout history loads",
+        "Empty state with illustration when no workouts exist",
+        "Empty state with illustration when no tasks exist",
+        "Empty state when HealthKit authorization denied",
+        "All states use consistent styling"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": "Use react-native-reusables Skeleton component"
+    },
+    {
+      "id": "US-021",
+      "title": "Error handling and offline support",
+      "description": "Graceful error handling with offline-first data access",
+      "acceptanceCriteria": [
+        "Error boundary catches and displays component errors",
+        "Network errors don't crash app",
+        "All reads work offline (from SQLite)",
+        "TanStack Query configured with offlineFirst networkMode",
+        "Sync errors shown as non-blocking toast",
+        "App functional without network connection"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": "Offline-first architecture throughout"
+    }
+  ]
+}
