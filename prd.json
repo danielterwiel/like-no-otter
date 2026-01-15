@@ -92,7 +92,7 @@
         "Maestro test passes: maestro/us-002-database-setup.yaml"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Use JSI synchronous API for best performance"
     },
     {

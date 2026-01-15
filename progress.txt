@@ -72,3 +72,27 @@ Completed:
 - Added maestro/screenshots/ to .gitignore
 - Verified npm run check passes with 0 errors
 - Note: Maestro CLI must be installed locally to run tests: curl -Ls 'https://get.maestro.mobile.dev' | bash
+
+2026-01-15: US-002 - Database setup with Drizzle and SQLite
+
+Completed:
+- Installed expo-sqlite ~15.0.0 and drizzle-orm
+- Created lib/db/schema/ directory with schema files:
+  - workouts.ts: workouts, exercises, workoutExercises, workoutSets tables
+  - health.ts: healthMetrics table for caching HealthKit data
+  - tasks.ts: tasks table with title, dueDate, priority, completion status
+  - index.ts: re-exports all schema tables
+- Created lib/db/client.ts with configured Drizzle client using JSI sync API
+- Created lib/db/hooks/useMigrations.ts hook that:
+  - Runs SQL migrations on app start via SQLite.openDatabaseSync
+  - Creates all tables (workouts, exercises, workout_exercises, workout_sets, health_metrics, tasks)
+  - Returns isReady/error state for loading UI
+- Created lib/db/index.ts to export db client, schema, and useMigrations hook
+- Created providers/DatabaseProvider.tsx:
+  - Wraps app with database context
+  - Shows loading state while migrations run
+  - Shows error state if migrations fail
+  - Provides useDatabase() hook for accessing db client
+- Updated App.tsx to wrap content with DatabaseProvider
+- Created __tests__/db-schema.test.ts with unit tests for schema exports (6 tests)
+- Verified npm run check passes with 0 errors
