@@ -9,6 +9,8 @@ import { HealthKitProvider, useHealthKit } from "@/providers/HealthKitProvider";
 import { HealthKitSyncProvider } from "@/providers/HealthKitSyncProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { HealthKitOnboarding } from "@/components/HealthKitOnboarding";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ToastProvider } from "@/components/ui/toast";
 import { Text } from "@/components/ui/text";
 
 function AppContent() {
@@ -81,14 +83,18 @@ function AppContent() {
 
 export default function RootLayout() {
   return (
-    <QueryProvider>
-      <DatabaseProvider>
-        <HealthKitProvider>
-          <HealthKitSyncProvider>
-            <AppContent />
-          </HealthKitSyncProvider>
-        </HealthKitProvider>
-      </DatabaseProvider>
-    </QueryProvider>
+    <ErrorBoundary>
+      <QueryProvider>
+        <DatabaseProvider>
+          <HealthKitProvider>
+            <ToastProvider>
+              <HealthKitSyncProvider>
+                <AppContent />
+              </HealthKitSyncProvider>
+            </ToastProvider>
+          </HealthKitProvider>
+        </DatabaseProvider>
+      </QueryProvider>
+    </ErrorBoundary>
   );
 }

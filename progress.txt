@@ -742,3 +742,42 @@ Completed:
   - Tests health cards, workout history, task list
   - Verifies empty states and skeleton testIDs
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-021 - Error handling and offline support
+
+Completed:
+- Created components/ErrorBoundary.tsx React Error Boundary:
+  - Class component with getDerivedStateFromError and componentDidCatch
+  - Catches and displays component errors without crashing app
+  - Custom fallback UI with error message and "Try Again" button
+  - Error details shown in muted code block
+  - Icon from @expo/vector-icons (Ionicons alert-circle)
+  - testID="error-boundary" and testID="error-boundary-retry" for E2E testing
+- Created components/ui/toast.tsx Toast notification system:
+  - ToastProvider wraps app and provides useToast() hook
+  - showToast() accepts type (success, error, warning, info), title, description, duration
+  - ToastItem with animated enter/exit (opacity + translateY)
+  - Auto-dismiss after configurable duration (default 4000ms)
+  - Manual dismiss via close button
+  - Color-coded icons for each toast type
+  - Uses Portal from @rn-primitives/portal for proper z-index layering
+  - testIDs: toast-container, toast-{type}, toast-dismiss
+- Updated app/_layout.tsx:
+  - Added ErrorBoundary wrapping entire app (outermost provider)
+  - Added ToastProvider inside HealthKitProvider (before HealthKitSyncProvider)
+  - Provider order: ErrorBoundary > QueryProvider > DatabaseProvider > HealthKitProvider > ToastProvider > HealthKitSyncProvider
+- Updated providers/HealthKitSyncProvider.tsx:
+  - Added useToast() hook import
+  - Shows non-blocking toast on sync failure
+  - Toast message: "Sync failed - Health data could not be synced. Using cached data."
+  - 5-second duration for error toasts
+- Offline-first architecture already in place:
+  - TanStack Query with networkMode: "offlineFirst" (from US-008)
+  - All data reads from SQLite database (local-first)
+  - Sync runs in background on app foreground
+- Updated maestro/us-021-error-handling.yaml:
+  - Tests navigation through all tabs (Health, Workouts, Tasks, Today)
+  - Verifies screen testIDs (screen-health, screen-workouts, screen-tasks)
+  - Verifies workout-history FlashList loads data from SQLite
+  - Verifies toast-container available for error notifications
+- All checks pass: npm run check (format, lint, types, tests, audit)

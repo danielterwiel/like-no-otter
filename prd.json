@@ -437,7 +437,7 @@
         "Maestro test passes: maestro/us-021-error-handling.yaml"
       ],
       "priority": 21,
-      "passes": false,
+      "passes": true,
       "notes": "Offline-first architecture throughout"
     }
   ]

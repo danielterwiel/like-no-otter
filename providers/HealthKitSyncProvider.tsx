@@ -12,6 +12,7 @@ import { syncHealthData, type SyncResult } from "@/lib/health/sync";
 import { retrySyncUnsyncedWorkouts } from "@/lib/db/queries/workouts";
 import { invalidateHealthQueries } from "./QueryProvider";
 import { useHealthKit } from "./HealthKitProvider";
+import { useToast } from "@/components/ui/toast";
 
 interface HealthKitSyncContextValue {
   lastSyncResult: SyncResult | null;
@@ -38,6 +39,7 @@ export function HealthKitSyncProvider({ children }: HealthKitSyncProviderProps) 
   const [isSyncing, setIsSyncing] = useState(false);
   const appState = useRef<AppStateStatus>(AppState.currentState);
   const { authStatus, isAvailable } = useHealthKit();
+  const { showToast } = useToast();
 
   const triggerSync = useCallback(async (): Promise<SyncResult> => {
     // Skip sync if already syncing or not authorized
@@ -85,11 +87,20 @@ export function HealthKitSyncProvider({ children }: HealthKitSyncProviderProps) 
         recordsInserted: 0,
       };
       setLastSyncResult(errorResult);
+
+      // Show non-blocking toast for sync errors
+      showToast({
+        type: "error",
+        title: "Sync failed",
+        description: "Health data could not be synced. Using cached data.",
+        duration: 5000,
+      });
+
       return errorResult;
     } finally {
       setIsSyncing(false);
     }
-  }, [isSyncing, isAvailable, authStatus]);
+  }, [isSyncing, isAvailable, authStatus, showToast]);
 
   // Sync on app foreground
   useEffect(() => {
