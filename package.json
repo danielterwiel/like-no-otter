@@ -23,6 +23,7 @@
     "@shopify/flash-list": "^2.2.0",
     "@shopify/react-native-skia": "2.2.12",
     "@tanstack/react-query": "^5.90.18",
+    "@xstate/react": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
@@ -45,7 +46,8 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^3.4.19",
     "tailwindcss-animate": "^1.0.7",
-    "victory-native": "^41.20.2"
+    "victory-native": "^41.20.2",
+    "xstate": "^5.25.1"
   },
   "devDependencies": {
     "@expo/ngrok": "^4.1.3",

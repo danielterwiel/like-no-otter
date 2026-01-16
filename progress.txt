@@ -354,3 +354,33 @@ Completed:
   - Tests adding exercises to queue
   - Tests queue count display
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-010 - Active workout screen with timer
+
+Completed:
+- Installed xstate v5 and @xstate/react for state management
+- Created lib/workout/workoutMachine.ts with XState machine:
+  - States: idle, active, finished
+  - Timer using fromCallback actor that ticks every second
+  - Actions: START, TICK, NEXT_EXERCISE, PREVIOUS_EXERCISE, GO_TO_EXERCISE, FINISH, CANCEL
+  - Context tracks: exercises, currentExerciseIndex, startTime, elapsedSeconds
+  - formatDuration() utility for HH:MM:SS display
+- Created lib/workout/index.ts with exports
+- Created app/workout/active.tsx full-screen modal:
+  - Displays workout timer in HH:MM:SS format (testID="workout-timer")
+  - Shows current exercise prominently with exercise name, muscles, category
+  - Previous workout comparison placeholder (testID="previous-workout-comparison")
+  - Previous/Next exercise navigation buttons (disabled at bounds)
+  - Tappable exercise queue to jump to specific exercise
+  - Finish Workout button navigates back (placeholder for US-013 summary)
+  - Cancel Workout button resets machine and navigates back
+  - Web platform fallback message
+- Updated app/_layout.tsx:
+  - Added workout/active route with fullScreenModal presentation
+  - headerShown: false, gestureEnabled: false (prevents accidental dismissal)
+- Updated app/workout/setup.tsx:
+  - handleStartWorkout now navigates to /workout/active with JSON-stringified exercises
+- Updated maestro/us-010-active-workout.yaml:
+  - Tests full flow: Workouts tab -> Start Workout -> add exercise -> start -> verify timer, card, buttons
+  - Tests cancel returns to workouts screen
+- All checks pass: npm run check (format, lint, types, tests, audit)

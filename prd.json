@@ -245,7 +245,7 @@
         "Maestro test passes: maestro/us-010-active-workout.yaml"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": "Timer runs in XState context, persists if app backgrounded"
     },
     {

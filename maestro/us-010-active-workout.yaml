@@ -6,34 +6,74 @@ appId: com.likenootter.app
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 30000
 
 # Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Start a workout (when implemented)
+- assertVisible:
+    id: "screen-workouts"
+
+# Tap Start Workout button to open setup modal
 - tapOn:
     id: "start-workout-button"
-    optional: true
 
-# Add an exercise and start
+- assertVisible:
+    id: "screen-workout-setup"
+
+# Search for bench press and add it
 - tapOn:
-    text: "Start Workout"
-    optional: true
+    id: "exercise-search-input"
+
+- inputText: "bench"
+
+# Wait for search results and tap first exercise
+- tapOn:
+    text: "Barbell Bench Press"
+
+# Verify workout queue is visible with 1 exercise
+- assertVisible:
+    id: "workout-queue"
+
+# Start the workout
+- tapOn:
+    id: "start-workout-button"
+
+# Verify active workout screen is shown
+- assertVisible:
+    id: "screen-active-workout"
 
 # Verify timer is visible
 - assertVisible:
     id: "workout-timer"
-    optional: true
 
-# Verify current exercise is displayed
+# Verify current exercise card is displayed
 - assertVisible:
-    id: "current-exercise"
-    optional: true
+    id: "current-exercise-card"
 
-# Verify can navigate between exercises
+# Verify navigation buttons are present
+- assertVisible:
+    id: "previous-exercise-button"
+
+- assertVisible:
+    id: "next-exercise-button"
+
+# Verify finish button is present
+- assertVisible:
+    id: "finish-workout-button"
+
+# Verify cancel button is present
+- assertVisible:
+    id: "cancel-workout-button"
+
+# Test cancel workout
 - tapOn:
-    id: "next-exercise"
-    optional: true
+    id: "cancel-workout-button"
+
+# Should return to workout setup or workouts tab
+- assertVisible:
+    id: "screen-workouts"

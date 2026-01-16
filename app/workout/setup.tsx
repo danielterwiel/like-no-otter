@@ -109,9 +109,11 @@ export default function WorkoutSetupScreen() {
 
   const handleStartWorkout = useCallback(() => {
     if (selectedExercises.length === 0) return;
-    // TODO: Navigate to active workout with selected exercises
-    // For now, just go back
-    router.back();
+    // Navigate to active workout with selected exercises
+    router.push({
+      pathname: "/workout/active",
+      params: { exercises: JSON.stringify(selectedExercises) },
+    });
   }, [selectedExercises, router]);
 
   const renderExerciseItem = useCallback(
