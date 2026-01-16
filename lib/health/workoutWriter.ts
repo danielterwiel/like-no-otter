@@ -38,7 +38,8 @@ export async function saveWorkoutToHealthKit(
     // Dynamically import react-native-health
     const healthModule = await import("react-native-health");
     const AppleHealthKit = healthModule.default;
-    const { HealthActivity: HealthActivityEnum } = healthModule;
+    // Activities enum is under Constants, not exported directly as HealthActivity
+    const Activities = AppleHealthKit.Constants.Activities;
 
     // Check if HealthKit is available
     const isAvailable = await new Promise<boolean>((resolve) => {
@@ -55,7 +56,7 @@ export async function saveWorkoutToHealthKit(
     return new Promise<SaveWorkoutToHealthKitResult>((resolve) => {
       AppleHealthKit.saveWorkout(
         {
-          type: HealthActivityEnum.TraditionalStrengthTraining as HealthActivity,
+          type: Activities.TraditionalStrengthTraining as HealthActivity,
           startDate: input.startTime.toISOString(),
           endDate: input.endTime.toISOString(),
           // Note: The library doesn't support passing energyBurned directly
