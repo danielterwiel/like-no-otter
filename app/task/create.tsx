@@ -1,11 +1,21 @@
-import { useState, useCallback } from "react";
-import { View, TextInput, TouchableOpacity, Platform, ScrollView, Pressable } from "react-native";
+import { useState, useCallback, useEffect } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  Platform,
+  ScrollView,
+  Pressable,
+  Switch,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent } from "@/components/ui/card";
 import { createTask, type TaskPriority } from "@/lib/db";
+import { useConnections } from "@/lib/integrations/connection-manager";
+import { triggerDebouncedSync } from "@/lib/integrations/ticktick/sync";
 
 const PRIORITY_OPTIONS: { value: TaskPriority; label: string; color: string }[] = [
   { value: "none", label: "None", color: "#888" },
@@ -29,12 +39,23 @@ function toISODateString(date: Date): string {
 
 export default function CreateTaskScreen() {
   const router = useRouter();
+  const { isConnected } = useConnections();
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [priority, setPriority] = useState<TaskPriority>("none");
+  const [syncToTickTick, setSyncToTickTick] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isTickTickConnected = isConnected("ticktick");
+
+  // Default to syncing if TickTick is connected
+  useEffect(() => {
+    if (isTickTickConnected) {
+      setSyncToTickTick(true);
+    }
+  }, [isTickTickConnected]);
 
   const handleSave = useCallback(async () => {
     if (!title.trim()) {
@@ -54,11 +75,15 @@ export default function CreateTaskScreen() {
     setIsSaving(false);
 
     if (result.success) {
+      // Trigger TickTick sync if enabled
+      if (syncToTickTick && isTickTickConnected) {
+        triggerDebouncedSync();
+      }
       router.back();
     } else {
       setError(result.error || "Failed to save task");
     }
-  }, [title, dueDate, priority, router]);
+  }, [title, dueDate, priority, syncToTickTick, isTickTickConnected, router]);
 
   const handleDateChange = useCallback((_event: DateTimePickerEvent, selectedDate?: Date) => {
     if (Platform.OS === "android") {
@@ -187,6 +212,32 @@ export default function CreateTaskScreen() {
             </View>
           </CardContent>
         </Card>
+
+        {/* TickTick Sync Toggle - only show when TickTick is connected */}
+        {isTickTickConnected && (
+          <Card className="mx-4 mt-4">
+            <CardContent className="p-4">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Ionicons name="checkmark-done" size={18} color="#4285f4" />
+                    <Text className="ml-2 font-medium text-foreground">Sync to TickTick</Text>
+                  </View>
+                  <Text className="mt-1 text-sm text-muted-foreground">
+                    {syncToTickTick ? "Task will sync to TickTick" : "Task stays local only"}
+                  </Text>
+                </View>
+                <Switch
+                  testID="sync-to-ticktick-toggle"
+                  value={syncToTickTick}
+                  onValueChange={setSyncToTickTick}
+                  trackColor={{ false: "#888", true: "#4285f4" }}
+                  thumbColor="#fff"
+                />
+              </View>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Error Message */}
         {error && (

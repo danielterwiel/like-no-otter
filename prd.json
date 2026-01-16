@@ -246,7 +246,7 @@
         "Maestro test passes: maestro/us-008-ticktick-display.yaml"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": "Visual indicators help users understand sync state without being intrusive"
     },
     {

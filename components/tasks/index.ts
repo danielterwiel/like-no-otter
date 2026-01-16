@@ -1,1 +1,1 @@
-export { SwipeableTaskItem } from "./SwipeableTaskItem";
+export { SwipeableTaskItem, type TaskSyncStatus } from "./SwipeableTaskItem";

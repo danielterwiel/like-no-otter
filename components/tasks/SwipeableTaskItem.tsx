@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { View, TouchableOpacity, Platform } from "react-native";
+import { View, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -21,6 +21,7 @@ const PRIORITY_COLORS: Record<TaskPriority, string> = {
 
 const SWIPE_THRESHOLD = 80;
 const COMPLETE_COLOR = "#22c55e"; // green-500
+const TICKTICK_COLOR = "#4285f4"; // TickTick brand blue
 
 function formatDueDate(dateString: string | null): string | null {
   if (!dateString) return null;
@@ -46,15 +47,25 @@ function triggerHaptic() {
   }
 }
 
+export type TaskSyncStatus = "synced" | "pending" | "error" | "local";
+
 interface SwipeableTaskItemProps {
   task: TaskRecord;
   onToggleComplete: (taskId: number) => void;
+  syncStatus?: TaskSyncStatus;
+  onRetrySyncError?: (taskId: number) => void;
 }
 
-export function SwipeableTaskItem({ task, onToggleComplete }: SwipeableTaskItemProps) {
+export function SwipeableTaskItem({
+  task,
+  onToggleComplete,
+  syncStatus = task.ticktickId ? "synced" : "local",
+  onRetrySyncError,
+}: SwipeableTaskItemProps) {
   const translateX = useSharedValue(0);
   const formattedDue = formatDueDate(task.dueDate);
   const isOverdue = formattedDue === "Overdue";
+  const isTickTickTask = !!task.ticktickId;
 
   const handleComplete = useCallback(() => {
     triggerHaptic();
@@ -65,6 +76,13 @@ export function SwipeableTaskItem({ task, onToggleComplete }: SwipeableTaskItemP
     triggerHaptic();
     onToggleComplete(task.id);
   }, [task.id, onToggleComplete]);
+
+  const handleRetrySync = useCallback(() => {
+    if (onRetrySyncError) {
+      triggerHaptic();
+      onRetrySyncError(task.id);
+    }
+  }, [task.id, onRetrySyncError]);
 
   const panGesture = Gesture.Pan()
     .activeOffsetX(10)
@@ -138,11 +156,23 @@ export function SwipeableTaskItem({ task, onToggleComplete }: SwipeableTaskItemP
 
           {/* Task content */}
           <View className="flex-1">
-            <Text
-              className={`font-medium ${task.isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}
-            >
-              {task.title}
-            </Text>
+            <View className="flex-row items-center">
+              <Text
+                className={`font-medium ${task.isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}
+              >
+                {task.title}
+              </Text>
+              {/* TickTick badge for synced tasks */}
+              {isTickTickTask && (
+                <View
+                  testID={`ticktick-badge-${task.id}`}
+                  style={{ backgroundColor: TICKTICK_COLOR }}
+                  className="ml-2 flex-row items-center rounded px-1.5 py-0.5"
+                >
+                  <Ionicons name="checkmark-done" size={10} color="#fff" />
+                </View>
+              )}
+            </View>
             {formattedDue && (
               <Text
                 className={`text-sm ${isOverdue ? "text-destructive" : "text-muted-foreground"}`}
@@ -152,13 +182,33 @@ export function SwipeableTaskItem({ task, onToggleComplete }: SwipeableTaskItemP
             )}
           </View>
 
-          {/* Priority indicator (only for incomplete tasks without checkbox color) */}
-          {!task.isCompleted && task.priority !== "none" && (
-            <View
-              style={{ backgroundColor: PRIORITY_COLORS[task.priority] }}
-              className="ml-2 h-2 w-2 rounded-full"
-            />
+          {/* Sync status indicator */}
+          {syncStatus === "pending" && (
+            <View testID={`sync-pending-${task.id}`} className="ml-2">
+              <ActivityIndicator size="small" color={TICKTICK_COLOR} />
+            </View>
           )}
+          {syncStatus === "error" && (
+            <TouchableOpacity
+              testID={`sync-error-${task.id}`}
+              onPress={handleRetrySync}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              className="ml-2"
+            >
+              <Ionicons name="alert-circle" size={20} color="#ef4444" />
+            </TouchableOpacity>
+          )}
+
+          {/* Priority indicator (only for incomplete tasks without checkbox color) */}
+          {!task.isCompleted &&
+            task.priority !== "none" &&
+            syncStatus !== "pending" &&
+            syncStatus !== "error" && (
+              <View
+                style={{ backgroundColor: PRIORITY_COLORS[task.priority] }}
+                className="ml-2 h-2 w-2 rounded-full"
+              />
+            )}
         </Animated.View>
       </GestureDetector>
     </View>

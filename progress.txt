@@ -1123,3 +1123,41 @@ Completed:
   - Tests navigation to Tasks tab
   - Verifies section headers visible
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-008 (Integrations) - TickTick task indicators
+
+Completed:
+- Updated components/tasks/SwipeableTaskItem.tsx with sync indicators:
+  - Added TaskSyncStatus type: 'synced' | 'pending' | 'error' | 'local'
+  - Tasks with ticktick_id show TickTick badge (blue pill with checkmark-done icon)
+  - Pending sync shows ActivityIndicator spinner
+  - Sync error shows red alert-circle icon with tap-to-retry functionality
+  - Priority indicator hidden when sync status shown
+  - testIDs: ticktick-badge-{id}, sync-pending-{id}, sync-error-{id}
+- Updated components/tasks/index.ts to export TaskSyncStatus type
+- Updated app/(tabs)/tasks.tsx with filtering and sync integration:
+  - Added TaskFilterType: 'all' | 'ticktick' | 'local'
+  - Filter pills UI shown when TickTick is connected and tasks exist
+  - Filter buttons: All, TickTick (with icon), Local Only
+  - filterTasks() callback filters by ticktick_id presence
+  - getSyncStatus() determines sync status based on pending/error sets
+  - handleRefresh() triggers syncTickTickTasks() when TickTick connected
+  - handleToggleComplete() triggers triggerDebouncedSync() on completion
+  - handleRetrySyncError() retries sync for failed tasks with pending state
+  - Pull-to-refresh triggers manual TickTick sync
+  - testIDs: task-filter-pills, filter-all, filter-ticktick, filter-local
+- Updated app/task/create.tsx with sync to TickTick option:
+  - Added syncToTickTick toggle state, defaults to true when connected
+  - Switch UI shows when TickTick is connected
+  - "Sync to TickTick" label with checkmark-done icon
+  - Description updates: "Task will sync to TickTick" / "Task stays local only"
+  - Creates task locally, then triggers triggerDebouncedSync() if sync enabled
+  - testID: sync-to-ticktick-toggle
+- Created maestro/us-008-ticktick-display.yaml E2E test:
+  - Verifies Tasks tab navigation and section headers
+  - Tests add task button and creation screen
+  - Verifies sync toggle appears when TickTick connected (optional)
+  - Tests filter pills functionality (optional)
+  - Tests More tab TickTick connection card
+  - Tests pull-to-refresh
+- All checks pass: npm run check (format, lint, types, tests, audit)

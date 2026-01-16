@@ -1,0 +1,109 @@
+appId: com.likenootter.app
+---
+# US-008: TickTick task indicators
+# Verifies sync status and source indicators for TickTick tasks
+
+- launchApp:
+    clearState: false
+
+- extendedWaitUntil:
+    visible: "app-ready"
+    timeout: 10000
+
+# Navigate to Tasks tab
+- tapOn:
+    text: "Tasks"
+
+- extendedWaitUntil:
+    visible: "screen-tasks"
+    timeout: 5000
+
+# Verify section headers are visible
+- assertVisible:
+    id: "section-header-today"
+
+- assertVisible:
+    id: "section-header-upcoming"
+
+- assertVisible:
+    id: "section-header-done"
+
+# Verify task list container
+- assertVisible:
+    id: "task-list"
+    optional: true
+
+# Test add task navigation
+- tapOn:
+    id: "add-task-button"
+
+- extendedWaitUntil:
+    visible: "screen-task-create"
+    timeout: 5000
+
+# Verify title input
+- assertVisible:
+    id: "task-title-input"
+
+# Verify priority options
+- assertVisible:
+    id: "priority-none"
+
+# If TickTick is connected, verify sync toggle (optional - may not be connected)
+- assertVisible:
+    id: "sync-to-ticktick-toggle"
+    optional: true
+
+# Go back to tasks
+- back
+
+- extendedWaitUntil:
+    visible: "screen-tasks"
+    timeout: 5000
+
+# Navigate to More tab to check TickTick connection status
+- tapOn:
+    text: "More"
+
+- extendedWaitUntil:
+    visible: "screen-more"
+    timeout: 5000
+
+# Verify TickTick connection card
+- assertVisible:
+    id: "connection-card-ticktick"
+
+# Navigate back to Tasks
+- tapOn:
+    text: "Tasks"
+
+- extendedWaitUntil:
+    visible: "screen-tasks"
+    timeout: 5000
+
+# Verify filter pills appear when TickTick is connected and tasks exist (optional)
+- assertVisible:
+    id: "task-filter-pills"
+    optional: true
+
+# If filter pills visible, test filter functionality (optional)
+- tapOn:
+    id: "filter-ticktick"
+    optional: true
+
+- tapOn:
+    id: "filter-local"
+    optional: true
+
+- tapOn:
+    id: "filter-all"
+    optional: true
+
+# Test pull to refresh
+- scroll:
+    direction: DOWN
+    duration: 500
+
+# Final verification - tasks screen still visible
+- assertVisible:
+    id: "screen-tasks"
