@@ -58,6 +58,14 @@ const MIGRATIONS = [
     completed_at INTEGER,
     created_at INTEGER NOT NULL
   )`,
+  `CREATE TABLE IF NOT EXISTS connections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    service TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'disconnected',
+    connected_at INTEGER,
+    last_sync_at INTEGER,
+    sync_error TEXT
+  )`,
 ];
 
 export function useMigrations() {

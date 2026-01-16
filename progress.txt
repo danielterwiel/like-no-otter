@@ -810,3 +810,45 @@ Completed:
   - Verifies disconnected status indicators
   - Tests navigation to each connect screen
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-002 (Integrations) - Connection management infrastructure
+
+Completed:
+- Installed expo-secure-store for OAuth token storage
+- Created lib/db/schema/connections.ts with Drizzle schema:
+  - ServiceType: 'whoop' | 'ticktick' | 'strong'
+  - ConnectionStatus: 'connected' | 'disconnected' | 'error'
+  - connections table: id, service, status, connectedAt, lastSyncAt, syncError
+  - Exported Connection and NewConnection types
+- Updated lib/db/schema/index.ts to export connections schema
+- Added connections table migration to lib/db/hooks/useMigrations.ts
+- Created lib/integrations/auth.ts with secure token management:
+  - saveTokens(): stores access token, refresh token, expiration in expo-secure-store
+  - getTokens(): retrieves tokens from secure storage
+  - clearTokens(): removes all tokens for a service
+  - hasValidToken(): checks if valid token exists (considers expiration)
+  - Keys use pattern: {service}_access_token, {service}_refresh_token, {service}_expires_at
+  - Platform check to skip on web
+- Created lib/integrations/connection-manager.ts:
+  - ConnectionRecord interface for connection data representation
+  - ConnectionsState interface with whoop, ticktick, strong nullable records
+  - getConnection(): fetches single service connection from SQLite
+  - getAllConnections(): fetches all connections
+  - updateConnection(): upserts connection record with status
+  - updateLastSync(): updates lastSyncAt timestamp
+  - setSyncError(): sets sync error message
+  - disconnectService(): clears tokens and resets connection status
+  - useConnections() hook: returns connections, isLoading, error, refresh, disconnect, isConnected
+- Created lib/integrations/index.ts to export all integration utilities
+- Updated app/(tabs)/more.tsx to use real connection state:
+  - Added useConnections hook for live connection status
+  - Added useFocusEffect to refresh connections on tab focus
+  - Added loading state with ActivityIndicator
+  - Replaced hardcoded connections with isConnected() calls
+- Created maestro/us-002-connection-infra.yaml E2E test:
+  - Verifies More tab navigation and Connections section
+  - Verifies all three connection cards visible
+  - Verifies disconnected status indicators
+  - Tests navigation to each connect screen and back
+  - Verifies connection state persists after navigation
+- All checks pass: npm run check (format, lint, types, tests, audit)

@@ -1,10 +1,12 @@
-import { View, TouchableOpacity, ScrollView, Platform } from "react-native";
+import { View, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent } from "@/components/ui/card";
-
-type ServiceType = "whoop" | "ticktick" | "strong";
+import { useConnections } from "@/lib/integrations";
+import type { ServiceType } from "@/lib/db/schema/connections";
 
 interface ConnectionCardProps {
   service: ServiceType;
@@ -56,13 +58,14 @@ function ConnectionCard({ service, name, icon, isConnected, onPress }: Connectio
 
 export default function MoreScreen() {
   const router = useRouter();
+  const { isConnected, isLoading, refresh } = useConnections();
 
-  // TODO: Replace with actual connection state from database (US-002)
-  const connections: Record<ServiceType, boolean> = {
-    whoop: false,
-    ticktick: false,
-    strong: false,
-  };
+  // Refresh connection status when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh]),
+  );
 
   const handleConnectionPress = (service: ServiceType) => {
     router.push(`/connect/${service}`);
@@ -88,29 +91,37 @@ export default function MoreScreen() {
         <View testID="connections-section" className="mb-6">
           <Text className="mb-3 text-lg font-semibold text-foreground">Connections</Text>
 
-          <ConnectionCard
-            service="whoop"
-            name="Whoop"
-            icon={<MaterialCommunityIcons name="watch" size={24} color="#00A2E8" />}
-            isConnected={connections.whoop}
-            onPress={() => handleConnectionPress("whoop")}
-          />
+          {isLoading ? (
+            <View className="items-center justify-center py-8">
+              <ActivityIndicator size="small" />
+            </View>
+          ) : (
+            <>
+              <ConnectionCard
+                service="whoop"
+                name="Whoop"
+                icon={<MaterialCommunityIcons name="watch" size={24} color="#00A2E8" />}
+                isConnected={isConnected("whoop")}
+                onPress={() => handleConnectionPress("whoop")}
+              />
 
-          <ConnectionCard
-            service="ticktick"
-            name="TickTick"
-            icon={<Ionicons name="checkbox-outline" size={24} color="#4772FA" />}
-            isConnected={connections.ticktick}
-            onPress={() => handleConnectionPress("ticktick")}
-          />
+              <ConnectionCard
+                service="ticktick"
+                name="TickTick"
+                icon={<Ionicons name="checkbox-outline" size={24} color="#4772FA" />}
+                isConnected={isConnected("ticktick")}
+                onPress={() => handleConnectionPress("ticktick")}
+              />
 
-          <ConnectionCard
-            service="strong"
-            name="Strong"
-            icon={<MaterialCommunityIcons name="dumbbell" size={24} color="#2196F3" />}
-            isConnected={connections.strong}
-            onPress={() => handleConnectionPress("strong")}
-          />
+              <ConnectionCard
+                service="strong"
+                name="Strong"
+                icon={<MaterialCommunityIcons name="dumbbell" size={24} color="#2196F3" />}
+                isConnected={isConnected("strong")}
+                onPress={() => handleConnectionPress("strong")}
+              />
+            </>
+          )}
         </View>
       </ScrollView>
     </View>

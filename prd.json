@@ -110,7 +110,7 @@
         "Maestro test passes: maestro/us-002-connection-infra.yaml"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Use expo-secure-store for sensitive token storage, SQLite for sync metadata"
     },
     {

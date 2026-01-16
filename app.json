@@ -37,7 +37,8 @@
           "healthSharePermission": "Allow Like No Otter to read your health data including sleep, steps, calories, and heart rate to display your daily metrics and trends.",
           "healthUpdatePermission": "Allow Like No Otter to save your workout data to Apple Health."
         }
-      ]
+      ],
+      "expo-secure-store"
     ]
   }
 }
