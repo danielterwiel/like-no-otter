@@ -781,3 +781,32 @@ Completed:
   - Verifies workout-history FlashList loads data from SQLite
   - Verifies toast-container available for error notifications
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-001 (Integrations) - More tab with connections hub
+
+Completed:
+- Created app/(tabs)/more.tsx with connections hub screen:
+  - "Connections" section header
+  - Three connection cards: Whoop, TickTick, Strong
+  - Each card shows service name, icon, and connection status
+  - Disconnected services show "Connect" button
+  - Connected services show green checkmark indicator
+  - Cards navigate to service-specific connection screens
+  - testID props for E2E testing (screen-more, connections-section, connection-card-*)
+- Updated app/(tabs)/_layout.tsx:
+  - Added 5th "More" tab with ellipsis-horizontal icon from Ionicons
+  - Tab bar now shows: Today, Health, Workouts, Tasks, More
+- Created placeholder connection screens:
+  - app/connect/whoop.tsx: Explains data access (recovery, sleep, strain, workouts)
+  - app/connect/ticktick.tsx: Explains bidirectional sync
+  - app/connect/strong.tsx: Shows CSV import instructions
+  - Each screen has Cancel button to return to More tab
+  - Placeholder Connect/Import buttons (OAuth flows in future stories)
+- Updated app/_layout.tsx with routes for connect screens:
+  - connect/whoop, connect/ticktick, connect/strong with modal presentation
+- Created maestro/us-001-more-tab.yaml E2E test:
+  - Verifies More tab visible in navigation
+  - Verifies Connections section and all three cards
+  - Verifies disconnected status indicators
+  - Tests navigation to each connect screen
+- All checks pass: npm run check (format, lint, types, tests, audit)

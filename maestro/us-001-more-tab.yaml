@@ -1,0 +1,99 @@
+# US-001: More tab with connections hub
+# Verifies More tab displays with connections management
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 15000
+
+# Navigate to More tab
+- tapOn:
+    text: "More"
+
+# Verify More screen is visible
+- assertVisible:
+    id: "screen-more"
+
+# Verify Connections section header
+- assertVisible:
+    id: "connections-section"
+
+- assertVisible:
+    text: "Connections"
+
+# Verify all three connection cards
+- assertVisible:
+    id: "connection-card-whoop"
+
+- assertVisible:
+    text: "Whoop"
+
+- assertVisible:
+    id: "connection-card-ticktick"
+
+- assertVisible:
+    text: "TickTick"
+
+- assertVisible:
+    id: "connection-card-strong"
+
+- assertVisible:
+    text: "Strong"
+
+# Verify disconnected status indicators (all should show "Connect" initially)
+- assertVisible:
+    id: "connection-status-whoop-disconnected"
+
+- assertVisible:
+    id: "connection-status-ticktick-disconnected"
+
+- assertVisible:
+    id: "connection-status-strong-disconnected"
+
+# Test navigation to Whoop connect screen
+- tapOn:
+    id: "connection-card-whoop"
+
+- assertVisible:
+    id: "screen-connect-whoop"
+
+- assertVisible:
+    text: "Connect Whoop"
+
+- tapOn:
+    id: "whoop-cancel-button"
+
+# Test navigation to TickTick connect screen
+- tapOn:
+    id: "connection-card-ticktick"
+
+- assertVisible:
+    id: "screen-connect-ticktick"
+
+- assertVisible:
+    text: "Connect TickTick"
+
+- tapOn:
+    id: "ticktick-cancel-button"
+
+# Test navigation to Strong connect screen
+- tapOn:
+    id: "connection-card-strong"
+
+- assertVisible:
+    id: "screen-connect-strong"
+
+- assertVisible:
+    text: "Import from Strong"
+
+- tapOn:
+    id: "strong-cancel-button"
+
+# Verify we're back on More screen
+- assertVisible:
+    id: "screen-more"

@@ -1,7 +1,7 @@
 {
   "project": "like-no-otter",
   "branchName": "main",
-  "description": "iOS health & workout tracker with simple task management. Combines HealthKit metrics, active workout logging, and a minimal task list.",
+  "description": "iOS health & workout tracker with integrations for Whoop, TickTick, and Strong. Combines HealthKit metrics, active workout logging, task management, and third-party data sources into a unified dashboard.",
   "designGuidelines": {
     "icons": {
       "rule": "Never use emojis. Always use icons from @expo/vector-icons.",
@@ -17,428 +17,306 @@
     "testDir": "maestro",
     "screenshotDir": "maestro/screenshots"
   },
+  "integrations": {
+    "whoop": {
+      "apiBase": "https://api.whoop.com",
+      "authUrl": "https://api.whoop.com/oauth/oauth2/auth",
+      "tokenUrl": "https://api.whoop.com/oauth/oauth2/token",
+      "scopes": [
+        "read:recovery",
+        "read:sleep",
+        "read:cycles",
+        "read:workout",
+        "read:profile",
+        "read:body_measurement",
+        "offline"
+      ],
+      "endpoints": {
+        "recovery": "GET /v2/recovery",
+        "sleep": "GET /v2/activity/sleep",
+        "cycles": "GET /v2/cycle",
+        "workouts": "GET /v2/activity/workout",
+        "profile": "GET /v2/user/profile/basic"
+      },
+      "notes": "Requires WHOOP device and membership. App review required before public release."
+    },
+    "ticktick": {
+      "apiBase": "https://api.ticktick.com/open/v1",
+      "authUrl": "https://ticktick.com/oauth/authorize",
+      "tokenUrl": "https://ticktick.com/oauth/token",
+      "scopes": ["tasks:read", "tasks:write"],
+      "endpoints": {
+        "tasks": "GET /project/{projectId}/task",
+        "createTask": "POST /task",
+        "updateTask": "POST /task/{taskId}",
+        "completeTask": "POST /task/{taskId}/complete",
+        "projects": "GET /project"
+      },
+      "notes": "Tokens expire after ~6 months. Bidirectional sync supported."
+    },
+    "strong": {
+      "type": "csv-import",
+      "csvColumns": [
+        "Date",
+        "Workout Name",
+        "Duration",
+        "Exercise Name",
+        "Set Order",
+        "Weight",
+        "Reps",
+        "Distance",
+        "Seconds",
+        "Notes",
+        "Workout Notes"
+      ],
+      "notes": "No API available. Users export CSV from Strong app settings. User owns their workout data per Strong ToS."
+    }
+  },
   "userStories": [
     {
       "id": "US-001",
-      "title": "Project setup with Expo and TypeScript",
-      "description": "Initialize Expo SDK 52 project with TypeScript, NativeWind v4, and react-native-reusables",
+      "title": "More tab with connections hub",
+      "description": "Add 5th tab 'More' to bottom navigation with connections management screen",
       "acceptanceCriteria": [
-        "npx create-expo-app creates project with TypeScript template",
-        "NativeWind v4 configured with tailwind.config.js",
-        "react-native-reusables installed and configured",
-        "App runs with 'npx expo start' without errors",
-        "Basic App.tsx renders a styled Text component"
+        "app/(tabs)/more.tsx renders More tab screen",
+        "Tab bar shows 5 tabs: Today, Health, Workouts, Tasks, More",
+        "More tab icon uses ellipsis-horizontal from Ionicons",
+        "More screen displays 'Connections' section header",
+        "Three connection cards shown: Whoop, TickTick, Strong",
+        "Each card shows service name, icon, and connection status",
+        "Tapping card navigates to service-specific connection flow",
+        "Connected services show green checkmark indicator",
+        "Disconnected services show 'Connect' button",
+        "Maestro test passes: maestro/us-001-more-tab.yaml"
       ],
       "priority": 1,
       "passes": true,
-      "notes": "Use Expo SDK 52 with New Architecture enabled by default"
-    },
-    {
-      "id": "US-001-VALIDATION",
-      "title": "Validation pipeline with Lefthook",
-      "description": "Configure oxlint, oxfmt, vitest, TypeScript checks, and npm audit with Lefthook pre-commit hooks",
-      "acceptanceCriteria": [
-        "oxlint installed and configured with recommended rules",
-        "oxfmt installed and configured for TypeScript/TSX files",
-        "vitest installed with initial config (vitest.config.ts)",
-        "lefthook.yml configures pre-commit hooks for all checks",
-        "npm run check runs: oxfmt --check, oxlint, tsc --noEmit, vitest run, npm audit",
-        "npm run fix runs: oxfmt and oxlint --fix",
-        "Pre-commit hook blocks commits unless all checks pass",
-        "package.json postinstall runs lefthook install",
-        "All existing code passes validation pipeline"
-      ],
-      "priority": 1.1,
-      "passes": true,
-      "notes": "Ralph-loop ready: nothing commits unless check exits 0"
-    },
-    {
-      "id": "US-001-E2E",
-      "title": "Maestro E2E testing setup",
-      "description": "Configure Maestro for E2E testing with test files for all user stories",
-      "acceptanceCriteria": [
-        "app.json has bundleIdentifier (iOS) and package (Android) set to com.likenootter.app",
-        "maestro/ directory exists with config.yaml",
-        "maestro/us-001-app-launches.yaml verifies app launches and shows title",
-        "maestro/us-002-database-setup.yaml verifies app launches after DB setup",
-        "maestro/us-003-tab-navigation.yaml verifies 4 tabs visible and navigable",
-        "maestro/us-004-seed-exercises.yaml verifies exercise search returns results",
-        "maestro/us-005-healthkit-permissions.yaml verifies onboarding flow",
-        "maestro/us-006-health-metrics-cards.yaml verifies health cards display",
-        "maestro/us-007-rhr-trend-chart.yaml verifies RHR chart renders",
-        "maestro/us-008-healthkit-sync.yaml verifies offline data access",
-        "maestro/us-009-workout-setup.yaml verifies exercise search and queue",
-        "maestro/us-010-active-workout.yaml verifies timer and exercise navigation",
-        "maestro/us-011-set-logging.yaml verifies weight/reps input and save",
-        "maestro/us-012-rest-timer.yaml verifies rest timer and skip",
-        "maestro/us-013-workout-summary.yaml verifies summary screen and save",
-        "maestro/us-014-workout-history.yaml verifies history list and cards",
-        "maestro/us-015-muscle-frequency-chart.yaml verifies bar chart",
-        "maestro/us-016-healthkit-write.yaml verifies workout sync status",
-        "maestro/us-017-task-creation.yaml verifies task form and save",
-        "maestro/us-018-task-list-view.yaml verifies section grouping",
-        "maestro/us-019-task-completion.yaml verifies checkbox and swipe",
-        "maestro/us-020-loading-empty-states.yaml verifies skeletons and empty states",
-        "maestro/us-021-error-handling.yaml verifies offline resilience",
-        "package.json has test:e2e and test:e2e:us scripts",
-        ".gitignore includes maestro/screenshots/",
-        "App.tsx has testID='app-ready' and testID='app-title' for US-001 verification",
-        "Maestro test passes: maestro/us-001-app-launches.yaml"
-      ],
-      "priority": 1.5,
-      "passes": true,
-      "notes": "E2E tests run against Expo web via Playwright (Docker-compatible). Maestro YAML files in maestro/ are parsed by scripts/e2e-runner.ts. For local Maestro testing: curl -Ls 'https://get.maestro.mobile.dev' | bash && npm run test:e2e:maestro"
+      "notes": "More tab follows iOS convention for 5th tab housing secondary features"
     },
     {
       "id": "US-002",
-      "title": "Database setup with Drizzle and SQLite",
-      "description": "Configure expo-sqlite with Drizzle ORM, create schema files, and run initial migration",
+      "title": "Connection management infrastructure",
+      "description": "Database schema and secure storage for OAuth tokens and connection state",
       "acceptanceCriteria": [
-        "expo-sqlite ~15.x and drizzle-orm installed",
-        "lib/db/schema/ directory exists with workouts.ts, health.ts, tasks.ts",
-        "lib/db/client.ts exports configured Drizzle client",
-        "Database tables created on app start via useMigrations hook",
-        "Can insert and query a test record",
-        "Maestro test passes: maestro/us-002-database-setup.yaml"
+        "lib/db/schema/connections.ts exports connections table schema",
+        "connections table has: id, service (whoop|ticktick|strong), status, connectedAt, lastSyncAt, syncError",
+        "expo-secure-store installed for OAuth token storage",
+        "lib/integrations/auth.ts exports saveTokens, getTokens, clearTokens functions",
+        "Tokens stored with keys: {service}_access_token, {service}_refresh_token",
+        "lib/integrations/connection-manager.ts exports useConnections hook",
+        "Hook returns connection status for all services with loading state",
+        "Can disconnect service (clears tokens and sets status to disconnected)",
+        "Connection state persists across app restarts",
+        "Maestro test passes: maestro/us-002-connection-infra.yaml"
       ],
       "priority": 2,
-      "passes": true,
-      "notes": "Use JSI synchronous API for best performance"
+      "passes": false,
+      "notes": "Use expo-secure-store for sensitive token storage, SQLite for sync metadata"
     },
     {
       "id": "US-003",
-      "title": "Tab navigation with Expo Router",
-      "description": "Create 4-tab bottom navigation: Today, Health, Workouts, Tasks",
+      "title": "Whoop OAuth connection flow",
+      "description": "Connect Whoop account via OAuth 2.0 authorization code flow",
       "acceptanceCriteria": [
-        "app/(tabs)/_layout.tsx configures tab navigator",
-        "app/(tabs)/index.tsx renders Today dashboard placeholder",
-        "app/(tabs)/health.tsx renders Health tab placeholder",
-        "app/(tabs)/workouts.tsx renders Workouts tab placeholder",
-        "app/(tabs)/tasks.tsx renders Tasks tab placeholder",
-        "Tab bar shows icons and labels for each tab",
-        "Navigation between tabs works smoothly",
-        "Maestro test passes: maestro/us-003-tab-navigation.yaml"
+        "app/connect/whoop.tsx renders Whoop connection screen",
+        "Screen explains what data will be accessed (recovery, sleep, strain, workouts)",
+        "Connect button initiates OAuth flow via expo-auth-session",
+        "OAuth request includes scopes: read:recovery, read:sleep, read:cycles, read:workout, read:profile, offline",
+        "Redirect URI configured in app.json for Whoop callback",
+        "Authorization code exchanged for access and refresh tokens",
+        "Tokens stored securely via expo-secure-store",
+        "Connection record created in SQLite with status 'connected'",
+        "Success state shows connected confirmation with user profile name",
+        "Error handling for denied permissions and network failures",
+        "Disconnect button clears tokens and updates connection status",
+        "Maestro test passes: maestro/us-003-whoop-oauth.yaml"
       ],
       "priority": 3,
-      "passes": true,
-      "notes": "Use Expo Router file-based routing"
+      "passes": false,
+      "notes": "Whoop OAuth docs: https://developer.whoop.com/docs/developing/oauth/"
     },
     {
       "id": "US-004",
-      "title": "Seed exercise database",
-      "description": "Create exercises table schema and seed with 100 common exercises categorized by muscle group",
+      "title": "Whoop data sync service",
+      "description": "Sync recovery, sleep, strain, and workout data from Whoop API to SQLite",
       "acceptanceCriteria": [
-        "exercises table has: id, name, category, primaryMuscles, secondaryMuscles, isCustom",
-        "constants/exercises.ts contains 100 exercises array",
-        "Exercises cover: chest, back, shoulders, biceps, triceps, quads, hamstrings, glutes, calves, abs",
-        "Categories include: barbell, dumbbell, machine, cable, bodyweight",
-        "Seed function inserts exercises on first app launch",
-        "Can query exercises by muscle group",
-        "Maestro test passes: maestro/us-004-seed-exercises.yaml"
+        "lib/integrations/whoop/sync.ts exports syncWhoopData function",
+        "lib/db/schema/whoop.ts exports whoop_recovery, whoop_sleep, whoop_cycles tables",
+        "whoop_recovery stores: id, date, recoveryScore, hrvRmssd, restingHeartRate, spo2, skinTemp, syncedAt",
+        "whoop_sleep stores: id, date, startTime, endTime, qualityDuration, remDuration, deepDuration, lightDuration, awakeDuration, respiratoryRate, syncedAt",
+        "whoop_cycles stores: id, date, strain, kilojoules, avgHeartRate, maxHeartRate, syncedAt",
+        "Sync fetches last 30 days of data on initial connection",
+        "Subsequent syncs fetch data since lastSyncAt timestamp",
+        "Sync handles pagination for all endpoints (nextToken pattern)",
+        "Token refresh handled automatically when access token expires",
+        "Sync runs on app foreground when Whoop is connected",
+        "Sync errors logged and stored in connection.syncError field",
+        "TanStack Query cache invalidated after successful sync",
+        "Maestro test passes: maestro/us-004-whoop-sync.yaml"
       ],
       "priority": 4,
-      "passes": true,
-      "notes": "Include common exercises: bench press, squat, deadlift, rows, pullups, etc."
+      "passes": false,
+      "notes": "Whoop API uses cursor-based pagination. Recovery data linked to sleep cycles."
     },
     {
       "id": "US-005",
-      "title": "HealthKit permissions flow",
-      "description": "Request HealthKit authorization during onboarding for sleep, steps, calories, heart rate",
+      "title": "Whoop metrics display in Health tab",
+      "description": "Display Whoop recovery, strain, and sleep data alongside HealthKit metrics",
       "acceptanceCriteria": [
-        "react-native-health installed with Expo config plugin",
-        "Info.plist contains NSHealthShareUsageDescription and NSHealthUpdateUsageDescription",
-        "Onboarding screen explains what health data will be accessed",
-        "Authorization request includes: sleep, steps, active energy, resting heart rate",
-        "Authorization denial handled gracefully with settings deep link",
-        "Authorization status persisted to prevent re-asking",
-        "Maestro test passes: maestro/us-005-healthkit-permissions.yaml"
+        "Health tab shows 'Whoop' section when connected",
+        "RecoveryCard displays recovery score (0-100%) with color coding (red/yellow/green)",
+        "RecoveryCard shows HRV, RHR, and SpO2 as secondary metrics",
+        "StrainCard displays daily strain score (0-21 scale) with gauge visualization",
+        "StrainCard shows calories burned and average heart rate",
+        "SleepCard shows Whoop sleep data when available (supplements HealthKit)",
+        "Sleep card displays time in each stage (REM, deep, light, awake)",
+        "7-day recovery trend chart using Victory Native",
+        "Cards show 'Whoop' badge to indicate data source",
+        "Loading skeleton shown while fetching Whoop data",
+        "Empty state shown if Whoop not connected with 'Connect Whoop' CTA",
+        "Data reads from SQLite (offline-first)",
+        "Maestro test passes: maestro/us-005-whoop-display.yaml"
       ],
       "priority": 5,
-      "passes": true,
-      "notes": "Requires custom dev client, not Expo Go"
+      "passes": false,
+      "notes": "Recovery score colors: 0-33% red, 34-66% yellow, 67-100% green"
     },
     {
       "id": "US-006",
-      "title": "Health metrics cards",
-      "description": "Display sleep, steps, calories, and resting heart rate on Health tab",
+      "title": "TickTick OAuth connection flow",
+      "description": "Connect TickTick account via OAuth 2.0 for task synchronization",
       "acceptanceCriteria": [
-        "SleepCard shows total sleep hours and start/end times",
-        "StepsCard shows step count with formatting (e.g., '12,534 steps')",
-        "CaloriesCard shows active calories burned",
-        "RHRCard shows resting heart rate in BPM",
-        "Cards use react-native-reusables Card component",
-        "Loading state shown while fetching from HealthKit",
-        "Empty state shown if no data available",
-        "Maestro test passes: maestro/us-006-health-metrics-cards.yaml"
+        "app/connect/ticktick.tsx renders TickTick connection screen",
+        "Screen explains bidirectional sync: tasks sync both ways",
+        "Connect button initiates OAuth flow via expo-auth-session",
+        "OAuth request includes scopes: tasks:read, tasks:write",
+        "Redirect URI configured in app.json for TickTick callback",
+        "Authorization code exchanged for access and refresh tokens",
+        "Tokens stored securely via expo-secure-store",
+        "Connection record created with status 'connected'",
+        "Initial sync triggered immediately after connection",
+        "Project selection screen shows available TickTick projects",
+        "User selects which project(s) to sync with app",
+        "Selected project IDs stored in connection metadata",
+        "Disconnect clears tokens and removes ticktick_id from local tasks",
+        "Maestro test passes: maestro/us-006-ticktick-oauth.yaml"
       ],
       "priority": 6,
-      "passes": true,
-      "notes": "Query HealthKit for today's data"
+      "passes": false,
+      "notes": "TickTick tokens expire after ~6 months. Store refresh token for renewal."
     },
     {
       "id": "US-007",
-      "title": "RHR trend chart",
-      "description": "Display 7-day resting heart rate line chart on Health tab",
+      "title": "TickTick bidirectional sync",
+      "description": "Sync tasks bidirectionally between app and TickTick",
       "acceptanceCriteria": [
-        "Victory Native line chart shows last 7 days of RHR",
-        "X-axis shows day labels (Mon, Tue, Wed...)",
-        "Y-axis shows BPM auto-scaled to data range",
-        "Tapping data point shows exact value and date",
-        "Missing days show gaps in chart (not connected)",
-        "Empty state if less than 3 days of data",
-        "Chart renders at 60 FPS",
-        "Maestro test passes: maestro/us-007-rhr-trend-chart.yaml"
+        "lib/integrations/ticktick/sync.ts exports syncTickTickTasks function",
+        "tasks table extended with: ticktick_id, ticktick_project_id, ticktick_etag columns",
+        "Sync pulls tasks from selected TickTick projects",
+        "Remote tasks without local match created locally",
+        "Local tasks without ticktick_id pushed to TickTick",
+        "Conflict resolution: most recent modification wins",
+        "Task completion synced bidirectionally",
+        "Task title and due date changes synced",
+        "Priority mapping: TickTick 0=none, 1=low, 3=medium, 5=high",
+        "Deleted tasks handled gracefully (mark deleted, don't hard delete)",
+        "Sync runs on app foreground and after local task changes",
+        "Debounced sync prevents excessive API calls (5 second delay)",
+        "Sync status shown in More tab (last sync time, error state)",
+        "Maestro test passes: maestro/us-007-ticktick-sync.yaml"
       ],
       "priority": 7,
-      "passes": true,
-      "notes": "Use Victory Native for charting"
+      "passes": false,
+      "notes": "Use etag for efficient change detection. TickTick priority scale differs from app."
     },
     {
       "id": "US-008",
-      "title": "HealthKit sync service",
-      "description": "Sync HealthKit data to SQLite on app foreground for offline viewing",
+      "title": "TickTick task indicators",
+      "description": "Display sync status and source indicators for TickTick tasks",
       "acceptanceCriteria": [
-        "lib/health/sync.ts exports syncHealthData function",
-        "Syncs sleep, steps, calories, RHR for last 30 days",
-        "health_metrics table stores cached data with syncedAt timestamp",
-        "Sync runs on app foreground via AppState listener",
-        "TanStack Query cache invalidated after sync",
-        "Sync errors logged but don't crash app",
-        "Maestro test passes: maestro/us-008-healthkit-sync.yaml"
+        "Tasks with ticktick_id show TickTick icon badge",
+        "Task list shows sync status indicator (synced, pending, error)",
+        "Pending sync shown as subtle loading indicator on task row",
+        "Sync error shown as warning icon with tap-to-retry",
+        "Task detail view shows 'Synced with TickTick' status",
+        "New tasks show option to sync to TickTick or keep local-only",
+        "Filter option to show only TickTick tasks or only local tasks",
+        "Pull-to-refresh triggers manual TickTick sync",
+        "Offline changes queued and synced when connection restored",
+        "Maestro test passes: maestro/us-008-ticktick-display.yaml"
       ],
       "priority": 8,
-      "passes": true,
-      "notes": "Offline-first: always read from SQLite, sync in background"
+      "passes": false,
+      "notes": "Visual indicators help users understand sync state without being intrusive"
     },
     {
       "id": "US-009",
-      "title": "Workout setup screen",
-      "description": "Screen to search and select exercises before starting workout",
+      "title": "Strong CSV import flow",
+      "description": "Import workout history from Strong app via CSV file",
       "acceptanceCriteria": [
-        "app/workout/setup.tsx modal screen",
-        "Search input filters exercises by name",
-        "Exercise list grouped by category (barbell, dumbbell, etc.)",
-        "Tapping exercise adds it to workout queue",
-        "Selected exercises shown in reorderable list",
-        "Can remove exercise from queue",
-        "Start Workout button navigates to active workout",
-        "FlashList used for exercise list performance",
-        "Maestro test passes: maestro/us-009-workout-setup.yaml"
+        "app/connect/strong.tsx renders Strong import screen",
+        "Screen shows instructions: 'Export CSV from Strong app settings'",
+        "Import button opens document picker for CSV files",
+        "expo-document-picker configured for text/csv mime type",
+        "lib/integrations/strong/parser.ts exports parseStrongCSV function",
+        "Parser handles Strong CSV columns: Date, Workout Name, Duration, Exercise Name, Set Order, Weight, Reps, Distance, Seconds, Notes",
+        "Parser groups rows by Date + Workout Name into workout sessions",
+        "Preview screen shows parsed workouts before import",
+        "Preview displays: workout count, date range, exercise count",
+        "User can deselect specific workouts from import",
+        "Import button saves selected workouts to SQLite",
+        "Progress indicator shows import progress for large files",
+        "Success screen shows import summary with workout count",
+        "Maestro test passes: maestro/us-009-strong-import.yaml"
       ],
       "priority": 9,
-      "passes": true,
-      "notes": "ExerciseSearch component with debounced search"
+      "passes": false,
+      "notes": "Strong CSV columns have spaces in names. Parse carefully."
     },
     {
       "id": "US-010",
-      "title": "Active workout screen with timer",
-      "description": "Full-screen workout mode showing elapsed time and current exercise",
+      "title": "Strong exercise mapping",
+      "description": "Map imported Strong exercises to existing exercise database",
       "acceptanceCriteria": [
-        "app/(modals)/active-workout.tsx modal screen",
-        "Running workout timer shows HH:MM:SS",
-        "Current exercise name displayed prominently",
-        "Previous workout comparison shown if available",
-        "Can navigate between exercises in queue",
-        "Finish Workout button ends session",
-        "Tab bar hidden during active workout",
-        "XState workoutMachine manages all state transitions",
-        "Maestro test passes: maestro/us-010-active-workout.yaml"
+        "lib/integrations/strong/mapper.ts exports mapStrongExercises function",
+        "Mapper attempts fuzzy match of Strong exercise names to exercises table",
+        "Exact name matches mapped automatically",
+        "Fuzzy matching uses Levenshtein distance with 0.8 threshold",
+        "Unmatched exercises shown in mapping review screen",
+        "User can manually map unmatched exercises to existing or create new",
+        "New exercises created with isCustom=true and source='strong'",
+        "Exercise mappings cached in strong_exercise_mappings table",
+        "Cached mappings used for future imports (no re-mapping needed)",
+        "Mapping screen shows: Strong name -> App exercise name",
+        "Skip option for exercises user doesn't want to import",
+        "Maestro test passes: maestro/us-010-strong-mapping.yaml"
       ],
       "priority": 10,
-      "passes": true,
-      "notes": "Timer runs in XState context, persists if app backgrounded"
+      "passes": false,
+      "notes": "Exercise name variations: 'Bench Press (Barbell)' vs 'Barbell Bench Press'"
     },
     {
       "id": "US-011",
-      "title": "Set logging",
-      "description": "Log weight and reps for each set during workout",
+      "title": "Strong imported workout display",
+      "description": "Display imported Strong workouts in workout history with source indicator",
       "acceptanceCriteria": [
-        "Weight input accepts numeric value (lbs or kg)",
-        "Reps input accepts integer value",
-        "Set type toggle: Normal or Warmup",
-        "Add Set button saves set and shows in list below",
-        "Previous sets for current exercise visible",
-        "Can delete a set if entered incorrectly",
-        "Sets saved to SQLite immediately (offline-safe)",
-        "Maestro test passes: maestro/us-011-set-logging.yaml"
+        "workouts table extended with: source column (manual|strong|healthkit)",
+        "Imported Strong workouts saved with source='strong'",
+        "Workout history list shows source badge on imported workouts",
+        "Strong badge uses dumbbell icon with 'Strong' tooltip",
+        "Filter option in workout history: All, Manual, Imported",
+        "Workout detail view shows 'Imported from Strong' header",
+        "Imported workouts are read-only (cannot edit sets)",
+        "Can delete imported workouts (with confirmation)",
+        "Import history shown in More tab Strong section",
+        "Shows: last import date, total workouts imported",
+        "Re-import detects duplicates by date + workout name hash",
+        "Duplicate handling options: skip, replace, import as new",
+        "Maestro test passes: maestro/us-011-strong-display.yaml"
       ],
       "priority": 11,
-      "passes": true,
-      "notes": "SetRow component for each logged set"
-    },
-    {
-      "id": "US-012",
-      "title": "Rest timer with skip",
-      "description": "Configurable rest timer between sets with skip option",
-      "acceptanceCriteria": [
-        "Rest timer starts automatically after completing a set",
-        "Default rest duration: 90 seconds",
-        "Timer shows countdown in MM:SS format",
-        "Skip Rest button immediately ends timer",
-        "Timer emits vibration/haptic when complete",
-        "Rest duration configurable via settings (30s to 5min)",
-        "XState restTimer state handles all logic",
-        "Maestro test passes: maestro/us-012-rest-timer.yaml"
-      ],
-      "priority": 12,
-      "passes": true,
-      "notes": "Use Expo Haptics for timer completion"
-    },
-    {
-      "id": "US-013",
-      "title": "Workout summary and save",
-      "description": "Show workout summary and save to database on completion",
-      "acceptanceCriteria": [
-        "Summary screen shows: total duration, total volume (weight x reps)",
-        "List of exercises completed with set counts",
-        "Muscle groups trained shown as tags",
-        "Save button commits workout to SQLite",
-        "Success confirmation navigates back to Workouts tab",
-        "Workout appears in history list immediately",
-        "Maestro test passes: maestro/us-013-workout-summary.yaml"
-      ],
-      "priority": 13,
-      "passes": true,
-      "notes": "Calculate total volume as sum of (weight * reps) across all sets"
-    },
-    {
-      "id": "US-014",
-      "title": "Workout history list",
-      "description": "Display past workouts on Workouts tab with FlashList",
-      "acceptanceCriteria": [
-        "FlashList renders workout history sorted by date (newest first)",
-        "Each workout card shows: date, duration, exercises count, muscle groups",
-        "Tapping workout card opens detail view",
-        "Empty state shown if no workouts logged",
-        "Pull-to-refresh reloads from database",
-        "Maintains 60 FPS with 100+ workouts",
-        "Maestro test passes: maestro/us-014-workout-history.yaml"
-      ],
-      "priority": 14,
-      "passes": true,
-      "notes": "WorkoutCard component for list items"
-    },
-    {
-      "id": "US-015",
-      "title": "Muscle frequency chart",
-      "description": "Bar chart showing sets per muscle group over last 4 weeks",
-      "acceptanceCriteria": [
-        "Victory Native bar chart on Workouts tab",
-        "X-axis shows muscle groups (chest, back, shoulders, etc.)",
-        "Y-axis shows total sets count",
-        "Bars colored by muscle group",
-        "Tapping bar shows exact count",
-        "Data aggregated from last 4 weeks of workouts",
-        "Empty state if no workout data",
-        "Maestro test passes: maestro/us-015-muscle-frequency-chart.yaml"
-      ],
-      "priority": 15,
-      "passes": true,
-      "notes": "Helps identify muscle imbalances"
-    },
-    {
-      "id": "US-016",
-      "title": "Write workout to HealthKit",
-      "description": "Save completed workout to Apple Health as HKWorkout",
-      "acceptanceCriteria": [
-        "After workout save, create HKWorkout record",
-        "Workout type: strength training",
-        "Include: start time, end time, total calories (estimated)",
-        "Write succeeds or fails silently (don't block user)",
-        "Retry failed writes on next app launch",
-        "Workout appears in Apple Health app",
-        "Maestro test passes: maestro/us-016-healthkit-write.yaml"
-      ],
-      "priority": 16,
-      "passes": true,
-      "notes": "Use react-native-health saveWorkout method"
-    },
-    {
-      "id": "US-017",
-      "title": "Task creation",
-      "description": "Create tasks with title, due date, and priority",
-      "acceptanceCriteria": [
-        "Add task button on Tasks tab opens creation form",
-        "Title input (required)",
-        "Due date picker (optional)",
-        "Priority selector: none, low, medium, high",
-        "Save button creates task in SQLite",
-        "New task appears in list immediately",
-        "Can create task without due date",
-        "Maestro test passes: maestro/us-017-task-creation.yaml"
-      ],
-      "priority": 17,
-      "passes": true,
-      "notes": "Single flat task list, no subtasks or tags"
-    },
-    {
-      "id": "US-018",
-      "title": "Task list view",
-      "description": "Display tasks grouped by Today, Upcoming, and Done sections",
-      "acceptanceCriteria": [
-        "FlashList renders tasks on Tasks tab",
-        "Today section: tasks due today or overdue",
-        "Upcoming section: tasks due in future",
-        "Done section: completed tasks (collapsed by default)",
-        "Tasks sorted by due date within sections",
-        "Priority shown as colored indicator",
-        "Empty state for each section if no tasks",
-        "Maestro test passes: maestro/us-018-task-list-view.yaml"
-      ],
-      "priority": 18,
-      "passes": true,
-      "notes": "Simple agenda-style view, no calendar"
-    },
-    {
-      "id": "US-019",
-      "title": "Task completion with swipe",
-      "description": "Mark tasks complete by tapping checkbox or swiping",
-      "acceptanceCriteria": [
-        "Checkbox on each task row toggles completion",
-        "Swipe right reveals complete action",
-        "Completed tasks move to Done section",
-        "Completion timestamp saved to database",
-        "Can uncomplete a task by tapping again",
-        "Haptic feedback on completion",
-        "Maestro test passes: maestro/us-019-task-completion.yaml"
-      ],
-      "priority": 19,
-      "passes": true,
-      "notes": "Use react-native-gesture-handler for swipe"
-    },
-    {
-      "id": "US-020",
-      "title": "Loading states and empty states",
-      "description": "Add skeleton loaders and empty state illustrations throughout app",
-      "acceptanceCriteria": [
-        "Skeleton loader shown while health data loads",
-        "Skeleton loader shown while workout history loads",
-        "Empty state with illustration when no workouts exist",
-        "Empty state with illustration when no tasks exist",
-        "Empty state when HealthKit authorization denied",
-        "All states use consistent styling",
-        "Maestro test passes: maestro/us-020-loading-empty-states.yaml"
-      ],
-      "priority": 20,
-      "passes": true,
-      "notes": "Use react-native-reusables Skeleton component"
-    },
-    {
-      "id": "US-021",
-      "title": "Error handling and offline support",
-      "description": "Graceful error handling with offline-first data access",
-      "acceptanceCriteria": [
-        "Error boundary catches and displays component errors",
-        "Network errors don't crash app",
-        "All reads work offline (from SQLite)",
-        "TanStack Query configured with offlineFirst networkMode",
-        "Sync errors shown as non-blocking toast",
-        "App functional without network connection",
-        "Maestro test passes: maestro/us-021-error-handling.yaml"
-      ],
-      "priority": 21,
-      "passes": true,
-      "notes": "Offline-first architecture throughout"
+      "passes": false,
+      "notes": "Read-only imported workouts prevent accidental modification of historical data"
     }
   ]
 }

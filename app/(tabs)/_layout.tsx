@@ -8,6 +8,7 @@ const TAB_ICONS: Record<string, IconName> = {
   Health: "heart-outline",
   Workouts: "barbell-outline",
   Tasks: "checkbox-outline",
+  More: "ellipsis-horizontal",
 };
 
 function TabIcon({ name, color }: { name: string; color: string }) {
@@ -53,6 +54,13 @@ export default function TabLayout() {
         options={{
           title: "Tasks",
           tabBarIcon: ({ color }) => <TabIcon name="Tasks" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: "More",
+          tabBarIcon: ({ color }) => <TabIcon name="More" color={color} />,
         }}
       />
     </Tabs>

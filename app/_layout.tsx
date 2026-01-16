@@ -74,6 +74,30 @@ function AppContent() {
             title: "New Task",
           }}
         />
+        <Stack.Screen
+          name="connect/whoop"
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "Whoop",
+          }}
+        />
+        <Stack.Screen
+          name="connect/ticktick"
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "TickTick",
+          }}
+        />
+        <Stack.Screen
+          name="connect/strong"
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "Strong",
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
       <PortalHost />
