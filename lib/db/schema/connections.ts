@@ -10,6 +10,7 @@ export const connections = sqliteTable("connections", {
   connectedAt: integer("connected_at"),
   lastSyncAt: integer("last_sync_at"),
   syncError: text("sync_error"),
+  metadata: text("metadata"),
 });
 
 export type Connection = typeof connections.$inferSelect;

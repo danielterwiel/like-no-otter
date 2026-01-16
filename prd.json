@@ -202,7 +202,7 @@
         "Maestro test passes: maestro/us-006-ticktick-oauth.yaml"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "TickTick tokens expire after ~6 months. Store refresh token for renewal."
     },
     {

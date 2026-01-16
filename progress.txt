@@ -1001,3 +1001,63 @@ Completed:
   - Verifies Whoop section and cards when connected (optional)
   - Tests navigation to Whoop connect screen
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-006 (Integrations) - TickTick OAuth connection flow
+
+Completed:
+- Created lib/integrations/ticktick/oauth.ts with OAuth configuration and token exchange:
+  - TICKTICK_AUTH_URL: https://ticktick.com/oauth/authorize
+  - TICKTICK_TOKEN_URL: https://ticktick.com/oauth/token
+  - TICKTICK_SCOPES: tasks:read, tasks:write
+  - getTickTickRedirectUri(): generates redirect URI using app scheme (likenootter://oauth/ticktick)
+  - exchangeTickTickCode(): exchanges authorization code for tokens, saves to secure storage, updates connection status
+- Created lib/integrations/ticktick/api.ts with TickTick API functions:
+  - TickTickProject interface for project data representation
+  - fetchTickTickProjects(): fetches projects from TickTick API with Bearer auth
+  - Filters out closed projects from response
+- Created lib/integrations/ticktick/index.ts to export OAuth and API utilities
+- Updated lib/integrations/index.ts to export ticktick module
+- Added metadata column to connections table for storing service-specific config:
+  - Updated lib/db/schema/connections.ts with metadata field
+  - Added safe migration in lib/db/hooks/useMigrations.ts (ALTER TABLE with error handling)
+- Updated lib/integrations/connection-manager.ts:
+  - Added metadata field to ConnectionRecord and ConnectionRow
+  - parseConnectionRow() now parses JSON metadata from database
+  - updateConnectionMetadata(): saves metadata as JSON string to database
+  - getConnectionMetadata<T>(): retrieves typed metadata for a service
+  - disconnectService() now clears metadata when disconnecting
+- Updated app/connect/ticktick.tsx with full OAuth flow:
+  - Uses useAuthRequest hook from expo-auth-session for OAuth
+  - Three screen states: initial, project-selection, connected
+  - Shows bidirectional sync explanation (Import/Sync tasks)
+  - Connect button initiates OAuth authorization request
+  - Handles OAuth response (success extracts code, error shows message)
+  - Exchanges authorization code for tokens automatically
+  - Project selection screen after successful OAuth:
+    - Fetches projects from TickTick API
+    - Displays projects as selectable list with checkboxes
+    - Multi-select support for choosing which projects to sync
+    - Save Selection button stores project IDs in connection metadata
+    - Skip option to proceed without selecting projects
+  - Connected state shows:
+    - Green checkmark with "Connected to TickTick"
+    - Number of synced projects
+    - Edit Synced Projects button to modify selection
+    - Disconnect button to clear tokens and metadata
+  - Error handling with alert display
+  - Web platform fallback message
+- Created lib/integrations/ticktick/oauth.test.ts with 7 unit tests:
+  - Tests OAuth URL constants
+  - Tests required scopes array (tasks:read, tasks:write)
+  - Tests token exchange with mocked expo-auth-session
+  - Tests token storage after successful exchange
+  - Tests connection status update after exchange
+  - Tests error handling on failed exchange
+  - Tests redirect URI generation
+- Created maestro/us-006-ticktick-oauth.yaml E2E test:
+  - Verifies navigation to TickTick connect screen
+  - Verifies bidirectional sync info displayed
+  - Verifies sync directions explained (Import/Sync)
+  - Verifies connect and cancel buttons
+  - Tests cancel navigation back to More screen
+- All checks pass: npm run check (format, lint, types, tests, audit)

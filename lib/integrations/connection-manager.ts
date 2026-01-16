@@ -13,6 +13,7 @@ export interface ConnectionRecord {
   connectedAt: Date | null;
   lastSyncAt: Date | null;
   syncError: string | null;
+  metadata: Record<string, unknown> | null;
 }
 
 export interface ConnectionsState {
@@ -28,9 +29,18 @@ interface ConnectionRow {
   connected_at: number | null;
   last_sync_at: number | null;
   sync_error: string | null;
+  metadata: string | null;
 }
 
 function parseConnectionRow(row: ConnectionRow): ConnectionRecord {
+  let metadata: Record<string, unknown> | null = null;
+  if (row.metadata) {
+    try {
+      metadata = JSON.parse(row.metadata);
+    } catch {
+      // Invalid JSON, ignore
+    }
+  }
   return {
     id: row.id,
     service: row.service as ServiceType,
@@ -38,6 +48,7 @@ function parseConnectionRow(row: ConnectionRow): ConnectionRecord {
     connectedAt: row.connected_at ? new Date(row.connected_at) : null,
     lastSyncAt: row.last_sync_at ? new Date(row.last_sync_at) : null,
     syncError: row.sync_error,
+    metadata,
   };
 }
 
@@ -187,7 +198,7 @@ export async function disconnectService(service: ServiceType): Promise<boolean> 
     const db = SQLite.openDatabaseSync(DATABASE_NAME);
 
     db.runSync(
-      `UPDATE connections SET status = 'disconnected', connected_at = NULL, last_sync_at = NULL, sync_error = NULL WHERE service = ?`,
+      `UPDATE connections SET status = 'disconnected', connected_at = NULL, last_sync_at = NULL, sync_error = NULL, metadata = NULL WHERE service = ?`,
       service,
     );
 
@@ -196,6 +207,35 @@ export async function disconnectService(service: ServiceType): Promise<boolean> 
     console.error(`Failed to disconnect ${service}:`, error);
     return false;
   }
+}
+
+export async function updateConnectionMetadata(
+  service: ServiceType,
+  metadata: Record<string, unknown>,
+): Promise<boolean> {
+  if (IS_WEB) {
+    return false;
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    const metadataJson = JSON.stringify(metadata);
+    db.runSync(`UPDATE connections SET metadata = ? WHERE service = ?`, metadataJson, service);
+
+    return true;
+  } catch (error) {
+    console.error(`Failed to update metadata for ${service}:`, error);
+    return false;
+  }
+}
+
+export async function getConnectionMetadata<T = Record<string, unknown>>(
+  service: ServiceType,
+): Promise<T | null> {
+  const connection = await getConnection(service);
+  return (connection?.metadata as T) ?? null;
 }
 
 export interface UseConnectionsResult {

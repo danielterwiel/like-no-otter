@@ -104,6 +104,12 @@ const MIGRATIONS = [
   )`,
 ];
 
+// Migrations that may fail (e.g., ALTER TABLE if column exists) - run outside transaction
+const SAFE_MIGRATIONS = [
+  // Migration 003: Add metadata column to connections for storing service-specific config
+  `ALTER TABLE connections ADD COLUMN metadata TEXT`,
+];
+
 export function useMigrations() {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -127,6 +133,15 @@ export function useMigrations() {
             db.runSync(migration);
           }
         });
+
+        // Run safe migrations (may fail if already applied)
+        for (const migration of SAFE_MIGRATIONS) {
+          try {
+            db.runSync(migration);
+          } catch {
+            // Ignore - column may already exist
+          }
+        }
 
         setIsReady(true);
       } catch (err) {

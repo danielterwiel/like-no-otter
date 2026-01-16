@@ -1,0 +1,81 @@
+# US-006: TickTick OAuth connection flow
+# Verifies TickTick connection screen with OAuth elements
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 15000
+
+# Navigate to More tab
+- tapOn:
+    text: "More"
+
+# Verify More screen is visible
+- assertVisible:
+    id: "screen-more"
+
+# Navigate to TickTick connect screen
+- tapOn:
+    id: "connection-card-ticktick"
+
+# Verify TickTick connection screen is visible
+- assertVisible:
+    id: "screen-connect-ticktick"
+
+- assertVisible:
+    text: "Connect TickTick"
+
+# Verify sync info is displayed
+- assertVisible:
+    id: "ticktick-sync-info"
+
+- assertVisible:
+    text: "Bidirectional Sync"
+
+# Verify sync directions are explained
+- assertVisible:
+    text: "Import tasks from TickTick"
+
+- assertVisible:
+    text: "Sync app tasks to TickTick"
+
+# Verify connect button is visible
+- assertVisible:
+    id: "ticktick-connect-button"
+
+- assertVisible:
+    text: "Connect TickTick Account"
+
+# Verify cancel button is visible
+- assertVisible:
+    id: "ticktick-cancel-button"
+
+- assertVisible:
+    text: "Cancel"
+
+# Test cancel navigation
+- tapOn:
+    id: "ticktick-cancel-button"
+
+# Verify we're back on More screen
+- assertVisible:
+    id: "screen-more"
+
+# Navigate back to verify the screen works correctly
+- tapOn:
+    id: "connection-card-ticktick"
+
+- assertVisible:
+    id: "screen-connect-ticktick"
+
+# Go back
+- tapOn:
+    id: "ticktick-cancel-button"
+
+- assertVisible:
+    id: "screen-more"
