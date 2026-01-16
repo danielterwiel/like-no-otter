@@ -1,14 +1,15 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { View, Platform, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ParsedStrongWorkout } from "@/lib/integrations/strong";
+import type { ParsedStrongWorkout, MappingResult } from "@/lib/integrations/strong";
+import { mapStrongExercises, saveExerciseMapping } from "@/lib/integrations/strong";
 import { importStrongWorkouts, type StrongImportWorkout } from "@/lib/db/queries/workouts";
 import { updateConnection } from "@/lib/integrations/connection-manager";
 
-type ScreenState = "preview" | "importing" | "success" | "error";
+type ScreenState = "loading" | "preview" | "importing" | "success" | "error";
 
 export default function StrongPreviewScreen() {
   const router = useRouter();
@@ -18,14 +19,17 @@ export default function StrongPreviewScreen() {
     totalExercises?: string;
     dateStart?: string;
     dateEnd?: string;
+    mappingComplete?: string;
   }>();
 
-  const [screenState, setScreenState] = useState<ScreenState>("preview");
+  const [screenState, setScreenState] = useState<ScreenState>("loading");
   const [error, setError] = useState<string | null>(null);
   const [importResult, setImportResult] = useState<{ imported: number; skipped: number } | null>(
     null,
   );
   const [selectedWorkouts, setSelectedWorkouts] = useState<Set<string>>(new Set());
+  const [mappingResult, setMappingResult] = useState<MappingResult | null>(null);
+  const [hasCheckedMapping, setHasCheckedMapping] = useState(false);
 
   // Parse workout data from params
   const parsedData = useMemo(() => {
@@ -38,12 +42,6 @@ export default function StrongPreviewScreen() {
           date: new Date(w.date),
         }),
       );
-
-      // Initialize all workouts as selected
-      const initialSelected = new Set(workouts.map((w) => w.id));
-      if (selectedWorkouts.size === 0) {
-        setSelectedWorkouts(initialSelected);
-      }
 
       return {
         workouts,
@@ -63,6 +61,73 @@ export default function StrongPreviewScreen() {
     params.dateStart,
     params.dateEnd,
   ]);
+
+  // Initialize selected workouts
+  useEffect(() => {
+    if (parsedData && selectedWorkouts.size === 0) {
+      setSelectedWorkouts(new Set(parsedData.workouts.map((w) => w.id)));
+    }
+  }, [parsedData]);
+
+  // Check exercise mapping when screen loads
+  useEffect(() => {
+    async function checkMapping() {
+      if (!parsedData || hasCheckedMapping) return;
+      setHasCheckedMapping(true);
+
+      // Extract unique exercise names from all workouts
+      const exerciseNames = new Set<string>();
+      for (const workout of parsedData.workouts) {
+        for (const exercise of workout.exercises) {
+          exerciseNames.add(exercise.name);
+        }
+      }
+
+      try {
+        // Run mapping analysis
+        const result = await mapStrongExercises(Array.from(exerciseNames));
+        setMappingResult(result);
+
+        // If mapping complete flag is set (coming back from mapping screen), go straight to preview
+        if (params.mappingComplete === "true") {
+          setScreenState("preview");
+          return;
+        }
+
+        // If there are exercises needing review, navigate to mapping screen
+        if (result.needsReview.length > 0) {
+          router.replace({
+            pathname: "/connect/strong-mapping",
+            params: {
+              unmapped: JSON.stringify(result.needsReview),
+              workoutsJson: params.workouts,
+              totalWorkouts: params.totalWorkouts,
+              totalExercises: params.totalExercises,
+              dateStart: params.dateStart,
+              dateEnd: params.dateEnd,
+              autoMapped: JSON.stringify(result.autoMapped),
+            },
+          });
+          return;
+        }
+
+        // No mapping needed - save auto-mappings and proceed
+        for (const mapped of result.autoMapped) {
+          if (!mapped.fromCache && mapped.mappedExercise) {
+            await saveExerciseMapping(mapped.strongName, mapped.mappedExercise.id);
+          }
+        }
+
+        setScreenState("preview");
+      } catch (err) {
+        console.error("Failed to check exercise mapping:", err);
+        // Continue without mapping on error
+        setScreenState("preview");
+      }
+    }
+
+    checkMapping();
+  }, [parsedData, hasCheckedMapping, params, router]);
 
   const toggleWorkoutSelection = useCallback((workoutId: string) => {
     setSelectedWorkouts((prev) => {
@@ -186,6 +251,19 @@ export default function StrongPreviewScreen() {
     return `${formatDate(parsedData.dateStart)} - ${formatDate(parsedData.dateEnd)}`;
   };
 
+  // Loading screen (checking mapping)
+  if (screenState === "loading") {
+    return (
+      <View testID="screen-strong-preview" className="flex-1 bg-background">
+        <View className="flex-1 items-center justify-center p-6">
+          <ActivityIndicator size="large" className="mb-4" />
+          <Text className="mb-2 text-xl font-semibold text-foreground">Analyzing Exercises...</Text>
+          <Text className="text-muted-foreground">Matching to exercise database</Text>
+        </View>
+      </View>
+    );
+  }
+
   // Success screen
   if (screenState === "success") {
     return (
@@ -230,6 +308,10 @@ export default function StrongPreviewScreen() {
   const selectedCount = selectedWorkouts.size;
   const allSelected = selectedCount === parsedData.workouts.length;
 
+  // Mapping summary
+  const mappedCount = mappingResult?.autoMapped.length || 0;
+  const skippedCount = mappingResult?.skipped.length || 0;
+
   return (
     <View testID="screen-strong-preview" className="flex-1 bg-background">
       {/* Header */}
@@ -266,6 +348,19 @@ export default function StrongPreviewScreen() {
           </CardContent>
         </Card>
       </View>
+
+      {/* Mapping Status Banner */}
+      {mappingResult && (mappedCount > 0 || skippedCount > 0) && (
+        <View className="mx-4 mb-2 rounded-lg bg-green-50 p-3">
+          <View className="flex-row items-center">
+            <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
+            <Text className="ml-2 flex-1 text-sm text-green-700">
+              {mappedCount} exercise{mappedCount !== 1 ? "s" : ""} mapped
+              {skippedCount > 0 ? `, ${skippedCount} skipped` : ""}
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Selection Actions */}
       <View className="flex-row justify-end gap-2 px-4 pb-2">

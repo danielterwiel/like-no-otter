@@ -1216,3 +1216,63 @@ Completed:
   - Verifies privacy info about data staying on device
   - Tests cancel navigation back to More screen
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-010 (Integrations) - Strong exercise mapping
+
+Completed:
+- Created lib/db/schema/strong.ts with exercise mapping schema:
+  - StrongExerciseMapping interface for cached mappings
+  - strong_exercise_mappings table: id, strong_name, exercise_id, is_skipped, created_at
+  - UNIQUE constraint on strong_name for upsert support
+- Added safe migration in lib/db/hooks/useMigrations.ts for new table
+- Created lib/integrations/strong/mapper.ts with fuzzy matching:
+  - levenshteinDistance(): calculates edit distance between strings (case-insensitive)
+  - calculateSimilarity(): converts distance to 0.0-1.0 similarity score
+  - findBestMatch(): finds best matching exercise above threshold
+  - SIMILARITY_THRESHOLD: 0.8 (80% similarity required for auto-match)
+  - MAX_SUGGESTIONS: 5 suggestions for unmatched exercises
+  - getTopSuggestions(): returns top N matches sorted by similarity
+  - getCachedMapping(): retrieves cached mapping from database
+  - saveExerciseMapping(): saves mapping with upsert support
+  - mapStrongExercises(): main function that:
+    - Checks cache first (previously mapped exercises)
+    - Tries exact match, then fuzzy match
+    - Returns autoMapped, needsReview, and skipped arrays
+  - saveMappingResults(): batch saves all mappings to database
+- Created lib/integrations/strong/mapper.test.ts with 22 TDD tests:
+  - Levenshtein distance: identical strings, empty strings, substitutions, insertions/deletions, case insensitivity
+  - Similarity: identical strings, different strings, partial matches, empty strings
+  - findBestMatch: exact match, fuzzy match above threshold, no match below threshold, default threshold
+  - mapStrongExercises: auto-mapped exact matches, exercises needing review with suggestions, cached mappings, skipped exercises
+  - saveExerciseMapping: saves to database, saves skipped exercises
+  - getCachedMapping: returns cached mapping, returns null when not found
+- Created app/connect/strong-mapping.tsx exercise mapping review screen:
+  - Receives unmapped exercises via route params
+  - Header shows progress (X of Y exercises mapped)
+  - Info banner explaining mapping options
+  - Expandable exercise cards with:
+    - Strong exercise name
+    - Current decision indicator (mapped/skipped/create new)
+    - Clear decision button
+    - Suggestions list with similarity percentage
+    - Create New Exercise option with custom name input
+    - Skip option to exclude from import
+  - Bottom action buttons:
+    - Cancel returns to previous screen
+    - Continue (disabled until all decided) saves mappings and navigates to preview
+- Updated app/connect/strong-preview.tsx to integrate mapping flow:
+  - Added "Analyzing exercises..." loading state
+  - Calls mapStrongExercises() on initial load
+  - Redirects to mapping screen if exercises need review
+  - Shows auto-mapped count in import summary
+  - Skipped exercises excluded from import count
+  - Added mappingComplete param to track flow completion
+- Updated app/_layout.tsx with connect/strong-mapping route (modal presentation)
+- Updated lib/integrations/strong/index.ts to export mapper module
+- Updated lib/db/schema/index.ts to export strong schema
+- Created maestro/us-010-strong-mapping.yaml E2E test:
+  - Verifies navigation to Strong import screen
+  - Verifies import instructions and CSV import button
+  - Tests navigation back to More screen
+  - Note: Full mapping flow requires valid CSV file which Maestro cannot provide
+- All checks pass: npm run check (format, lint, types, tests, audit)

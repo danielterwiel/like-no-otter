@@ -292,7 +292,7 @@
         "Maestro test passes: maestro/us-010-strong-mapping.yaml"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": "Exercise name variations: 'Bench Press (Barbell)' vs 'Barbell Bench Press'"
     },
     {

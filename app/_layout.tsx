@@ -106,6 +106,14 @@ function AppContent() {
             title: "Import Preview",
           }}
         />
+        <Stack.Screen
+          name="connect/strong-mapping"
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "Map Exercises",
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
       <PortalHost />

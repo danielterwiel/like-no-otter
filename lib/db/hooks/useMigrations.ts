@@ -102,6 +102,14 @@ const MIGRATIONS = [
     max_heart_rate INTEGER,
     synced_at INTEGER NOT NULL
   )`,
+  // Migration 005: Strong exercise mappings table
+  `CREATE TABLE IF NOT EXISTS strong_exercise_mappings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    strong_name TEXT NOT NULL UNIQUE,
+    exercise_id INTEGER,
+    is_skipped INTEGER DEFAULT 0,
+    created_at INTEGER NOT NULL
+  )`,
 ];
 
 // Migrations that may fail (e.g., ALTER TABLE if column exists) - run outside transaction

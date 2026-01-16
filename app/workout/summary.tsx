@@ -27,9 +27,15 @@ export default function WorkoutSummaryScreen() {
   // Parse workout data from params
   const workoutData = useMemo(() => {
     try {
-      const exercises: WorkoutExerciseState[] = params.exercises
-        ? JSON.parse(params.exercises)
-        : [];
+      const parsedExercises = params.exercises ? JSON.parse(params.exercises) : [];
+      // Rehydrate Date objects that were serialized to strings
+      const exercises: WorkoutExerciseState[] = parsedExercises.map((ex: WorkoutExerciseState) => ({
+        ...ex,
+        sets: ex.sets.map((set) => ({
+          ...set,
+          completedAt: set.completedAt ? new Date(set.completedAt) : null,
+        })),
+      }));
       const startTime = params.startTime ? new Date(params.startTime) : new Date();
       const durationSeconds = params.durationSeconds ? parseInt(params.durationSeconds, 10) : 0;
 

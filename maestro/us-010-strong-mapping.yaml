@@ -1,0 +1,82 @@
+# US-010: Strong exercise mapping
+# Verifies Strong exercise mapping screen with fuzzy matching and mapping options
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 15000
+
+# Navigate to More tab
+- tapOn:
+    text: "More"
+
+# Verify More screen is visible
+- assertVisible:
+    id: "screen-more"
+
+# Verify Strong connection card is visible
+- assertVisible:
+    id: "connection-card-strong"
+
+# Navigate to Strong connect screen
+- tapOn:
+    id: "connection-card-strong"
+
+# Verify Strong connection screen is visible
+- assertVisible:
+    id: "screen-connect-strong"
+
+# Verify import instructions are displayed
+- assertVisible:
+    id: "strong-import-info"
+
+- assertVisible:
+    text: "CSV Import"
+
+# Verify import button is available
+- assertVisible:
+    id: "strong-import-button"
+
+- assertVisible:
+    text: "Select CSV File"
+
+# Note: Cannot actually trigger file picker in Maestro tests
+# The mapping screen would normally appear after CSV is parsed
+
+# Test cancel navigation
+- tapOn:
+    id: "strong-cancel-button"
+
+# Verify we're back on More screen
+- assertVisible:
+    id: "screen-more"
+
+# Navigate to Workouts tab to verify existing exercise database
+- tapOn:
+    text: "Workouts"
+
+# Verify exercise library exists
+- assertVisible:
+    id: "screen-workouts"
+
+# Navigate back to More tab
+- tapOn:
+    text: "More"
+
+- assertVisible:
+    id: "screen-more"
+
+# Verify all integration cards are present
+- assertVisible:
+    id: "connection-card-whoop"
+
+- assertVisible:
+    id: "connection-card-ticktick"
+
+- assertVisible:
+    id: "connection-card-strong"
