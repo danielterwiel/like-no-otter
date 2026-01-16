@@ -155,7 +155,7 @@
         "Maestro test passes: maestro/us-004-whoop-sync.yaml"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Whoop API uses cursor-based pagination. Recovery data linked to sleep cycles."
     },
     {

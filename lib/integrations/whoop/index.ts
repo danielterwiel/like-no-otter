@@ -6,3 +6,5 @@ export {
   exchangeWhoopCode,
   type ExchangeResult,
 } from "./oauth";
+
+export { syncWhoopData, type SyncWhoopResult } from "./sync";

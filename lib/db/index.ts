@@ -5,3 +5,4 @@ export { useMigrations } from "./hooks/useMigrations";
 export * from "./queries/exercises";
 export * from "./queries/workouts";
 export * from "./queries/tasks";
+export * from "./queries/whoop";

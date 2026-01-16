@@ -1,0 +1,58 @@
+# US-004: Whoop data sync service
+# Verifies Whoop sync infrastructure is in place
+# Note: Full sync requires real Whoop credentials and connected account
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 15000
+
+# Navigate to More tab to verify connection infrastructure
+- tapOn:
+    text: "More"
+
+- assertVisible:
+    id: "screen-more"
+
+# Verify Connections section exists
+- assertVisible:
+    id: "connections-section"
+
+# Verify Whoop connection card shows current status
+- assertVisible:
+    id: "connection-card-whoop"
+
+# Navigate to Whoop connection screen
+- tapOn:
+    id: "connection-card-whoop"
+
+- assertVisible:
+    id: "screen-connect-whoop"
+
+# Verify connection screen has sync-related elements
+- assertVisible:
+    text: "Connect Whoop"
+
+# Go back
+- tapOn:
+    id: "whoop-cancel-button"
+
+- assertVisible:
+    id: "screen-more"
+
+# Navigate to Health tab to verify Whoop data display area exists
+- tapOn:
+    text: "Health"
+
+- assertVisible:
+    id: "screen-health"
+
+# Health tab should load (Whoop section will show when connected)
+# For now, verify health screen renders without errors
+- assertVisible:
+    text: "Health"

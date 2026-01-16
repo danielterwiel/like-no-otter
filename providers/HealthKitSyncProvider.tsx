@@ -13,6 +13,8 @@ import { retrySyncUnsyncedWorkouts } from "@/lib/db/queries/workouts";
 import { invalidateHealthQueries } from "./QueryProvider";
 import { useHealthKit } from "./HealthKitProvider";
 import { useToast } from "@/components/ui/toast";
+import { syncWhoopData } from "@/lib/integrations/whoop";
+import { getConnection } from "@/lib/integrations/connection-manager";
 
 interface HealthKitSyncContextValue {
   lastSyncResult: SyncResult | null;
@@ -32,6 +34,29 @@ export function useHealthKitSync(): HealthKitSyncContextValue {
 
 interface HealthKitSyncProviderProps {
   children: ReactNode;
+}
+
+// Helper to sync Whoop data if service is connected
+async function syncWhoopDataIfConnected(): Promise<void> {
+  if (Platform.OS !== "ios") return;
+
+  try {
+    const connection = await getConnection("whoop");
+    if (connection?.status === "connected") {
+      const result = await syncWhoopData();
+      if (result.success) {
+        console.log(
+          `Synced Whoop data: ${result.recoveryCount} recovery, ${result.sleepCount} sleep, ${result.cycleCount} cycles`,
+        );
+        // Invalidate health queries since Whoop data affects health display
+        invalidateHealthQueries();
+      } else if (result.error) {
+        console.warn("Whoop sync failed:", result.error);
+      }
+    }
+  } catch (error) {
+    console.error("Error checking Whoop connection:", error);
+  }
 }
 
 export function HealthKitSyncProvider({ children }: HealthKitSyncProviderProps) {
@@ -77,6 +102,9 @@ export function HealthKitSyncProvider({ children }: HealthKitSyncProviderProps) 
       if (retryResult.synced > 0) {
         console.log(`Synced ${retryResult.synced} workouts to HealthKit`);
       }
+
+      // Sync Whoop data if connected
+      await syncWhoopDataIfConnected();
 
       return result;
     } catch (error) {

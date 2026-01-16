@@ -66,6 +66,42 @@ const MIGRATIONS = [
     last_sync_at INTEGER,
     sync_error TEXT
   )`,
+  // Migration 002: Whoop integration tables
+  `CREATE TABLE IF NOT EXISTS whoop_recovery (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    whoop_id TEXT NOT NULL UNIQUE,
+    date TEXT NOT NULL,
+    recovery_score INTEGER,
+    hrv_rmssd REAL,
+    resting_heart_rate INTEGER,
+    spo2 REAL,
+    skin_temp REAL,
+    synced_at INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS whoop_sleep (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    whoop_id TEXT NOT NULL UNIQUE,
+    date TEXT NOT NULL,
+    start_time INTEGER NOT NULL,
+    end_time INTEGER NOT NULL,
+    quality_duration INTEGER,
+    rem_duration INTEGER,
+    deep_duration INTEGER,
+    light_duration INTEGER,
+    awake_duration INTEGER,
+    respiratory_rate REAL,
+    synced_at INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS whoop_cycles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    whoop_id TEXT NOT NULL UNIQUE,
+    date TEXT NOT NULL,
+    strain REAL,
+    kilojoules REAL,
+    avg_heart_rate INTEGER,
+    max_heart_rate INTEGER,
+    synced_at INTEGER NOT NULL
+  )`,
 ];
 
 export function useMigrations() {

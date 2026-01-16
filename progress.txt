@@ -893,3 +893,57 @@ Completed:
   - Verifies connect and cancel buttons
   - Tests cancel navigation back to More screen
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-004 (Integrations) - Whoop data sync service
+
+Completed:
+- Created lib/db/schema/whoop.ts with Drizzle schema tables:
+  - whoopRecovery: id, whoopId, date, recoveryScore, hrvRmssd, restingHeartRate, spo2, skinTemp, syncedAt
+  - whoopSleep: id, whoopId, date, startTime, endTime, qualityDuration, remDuration, deepDuration, lightDuration, awakeDuration, respiratoryRate, syncedAt
+  - whoopCycles: id, whoopId, date, strain, kilojoules, avgHeartRate, maxHeartRate, syncedAt
+  - Type exports: WhoopRecovery, NewWhoopRecovery, WhoopSleep, NewWhoopSleep, WhoopCycle, NewWhoopCycle
+- Updated lib/db/schema/index.ts to export whoop schema
+- Added Whoop table migrations to lib/db/hooks/useMigrations.ts:
+  - whoop_recovery table with whoop_id UNIQUE constraint
+  - whoop_sleep table with whoop_id UNIQUE constraint
+  - whoop_cycles table with whoop_id UNIQUE constraint
+- Created lib/db/queries/whoop.ts with database query functions:
+  - saveWhoopRecoveryRecords(): saves recovery records with upsert on whoopId
+  - saveWhoopSleepRecords(): saves sleep records with upsert on whoopId
+  - saveWhoopCycleRecords(): saves cycle records with upsert on whoopId
+  - getLatestWhoopRecovery(): fetches most recent recovery data
+  - getWhoopRecoveryByDate(): fetches recovery data for specific date
+  - getLatestWhoopCycle(): fetches most recent cycle/strain data
+  - getLatestWhoopSleep(): fetches most recent sleep data
+  - Platform check to skip on web
+- Created lib/integrations/whoop/sync.ts with syncWhoopData function:
+  - Fetches last 30 days of data on initial sync
+  - Handles Whoop API pagination with nextToken pattern
+  - Fetches recovery, sleep, and cycle data in parallel
+  - Transforms Whoop API responses to local schema format
+  - Saves records to SQLite with upsert handling
+  - Updates lastSyncAt timestamp on successful sync
+  - Token refresh when access token expires
+  - Graceful error handling with syncError logging
+  - Platform check to skip on non-iOS
+- Created lib/integrations/whoop/sync.test.ts with 6 unit tests (TDD approach):
+  - Tests syncWhoopData function export
+  - Tests error when no tokens available
+  - Tests success with record counts on successful sync
+  - Tests API error handling
+  - Tests token refresh when expired
+  - Tests non-iOS platform skipping
+- Updated lib/integrations/whoop/index.ts to export sync function
+- Updated lib/db/index.ts to export whoop queries
+- Updated providers/HealthKitSyncProvider.tsx:
+  - Added syncWhoopDataIfConnected helper function
+  - Syncs Whoop data when app comes to foreground
+  - Checks connection status before syncing
+  - Invalidates TanStack Query cache after successful sync
+  - Logs sync results for debugging
+- Created maestro/us-004-whoop-sync.yaml E2E test:
+  - Verifies More tab and connections infrastructure
+  - Verifies Whoop connection card
+  - Verifies navigation to Whoop connect screen
+  - Verifies Health tab loads without errors
+- All checks pass: npm run check (format, lint, types, tests, audit)
