@@ -6,31 +6,73 @@ appId: com.likenootter.app
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
 # Navigate to Tasks tab
 - tapOn:
     text: "Tasks"
 
-# Open task creation form (when implemented)
+# Verify Tasks screen loads with add button
+- assertVisible:
+    id: "screen-tasks"
+
+- assertVisible:
+    id: "add-task-button"
+
+# Verify empty state is shown initially
+- assertVisible:
+    text: "No tasks yet"
+    optional: true
+
+# Open task creation form
 - tapOn:
     id: "add-task-button"
-    optional: true
+
+# Verify task creation screen
+- assertVisible:
+    id: "screen-task-create"
+
+- assertVisible:
+    id: "task-title-input"
 
 # Enter task title
 - tapOn:
     id: "task-title-input"
-    optional: true
 
-- inputText: "Test task"
+- inputText: "Test task from E2E"
+
+# Verify priority options are visible
+- assertVisible:
+    id: "priority-none"
+
+- assertVisible:
+    id: "priority-low"
+
+- assertVisible:
+    id: "priority-medium"
+
+- assertVisible:
+    id: "priority-high"
+
+# Select medium priority
+- tapOn:
+    id: "priority-medium"
+
+# Verify due date button is visible
+- assertVisible:
+    id: "task-due-date-button"
 
 # Save the task
 - tapOn:
-    text: "Save"
-    optional: true
+    id: "save-task-button"
+
+# Verify we return to Tasks screen
+- assertVisible:
+    id: "screen-tasks"
 
 # Verify task appears in list
 - assertVisible:
-    text: "Test task"
-    optional: true
+    text: "Test task from E2E"

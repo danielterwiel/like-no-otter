@@ -64,6 +64,14 @@ function AppContent() {
             title: "Workout Details",
           }}
         />
+        <Stack.Screen
+          name="task/create"
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "New Task",
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
       <PortalHost />

@@ -600,3 +600,45 @@ Completed:
   - Verifies workout appears in history after save
   - Tests complete workout flow that triggers HealthKit write
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-017 - Task creation
+
+Completed:
+- Created lib/db/queries/tasks.ts with task database operations:
+  - TaskPriority type: 'none' | 'low' | 'medium' | 'high'
+  - TaskRecord interface for task data representation
+  - createTask(): inserts task with title, due date, priority to SQLite
+  - getAllTasks(): fetches all tasks ordered by completion, due date, creation
+  - getTaskCount(): returns total task count
+  - getIncompleteTaskCount(): returns count of incomplete tasks
+  - Platform check to return empty/error for web
+- Created app/task/create.tsx modal screen:
+  - Title input (required) with validation
+  - Due date picker using @react-native-community/datetimepicker
+  - Priority selector with four options: none, low, medium, high
+  - Each priority has distinct color indicator
+  - Save button creates task and navigates back
+  - Discard clears form state
+  - Error display for validation and save failures
+  - Web platform fallback message
+- Updated app/(tabs)/tasks.tsx with full task list UI:
+  - Add button in header opens task creation modal
+  - FlashList renders task list with TaskItem components
+  - TaskItem displays priority color, title, due date
+  - Due date formatting: Today, Tomorrow, weekday, or date
+  - Overdue tasks shown with destructive color
+  - Pull-to-refresh support
+  - Empty state with illustration when no tasks
+  - Reload on tab focus using useFocusEffect
+- Updated app/_layout.tsx:
+  - Added task/create route with modal presentation
+  - Header shows "New Task" title
+- Updated lib/db/index.ts to export task query functions
+- Installed @react-native-community/datetimepicker for date selection
+- Updated maestro/us-017-task-creation.yaml:
+  - Tests navigation to Tasks tab
+  - Tests add button opens creation modal
+  - Tests title input and priority selection
+  - Tests save button returns to Tasks tab
+  - Verifies new task appears in list
+- All checks pass: npm run check (format, lint, types, tests, audit)

@@ -368,7 +368,7 @@
         "Maestro test passes: maestro/us-017-task-creation.yaml"
       ],
       "priority": 17,
-      "passes": false,
+      "passes": true,
       "notes": "Single flat task list, no subtasks or tags"
     },
     {
