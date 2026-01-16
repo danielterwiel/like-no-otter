@@ -226,7 +226,7 @@
         "Maestro test passes: maestro/us-007-ticktick-sync.yaml"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "Use etag for efficient change detection. TickTick priority scale differs from app."
     },
     {

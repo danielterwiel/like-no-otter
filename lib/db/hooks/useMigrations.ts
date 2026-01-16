@@ -108,6 +108,12 @@ const MIGRATIONS = [
 const SAFE_MIGRATIONS = [
   // Migration 003: Add metadata column to connections for storing service-specific config
   `ALTER TABLE connections ADD COLUMN metadata TEXT`,
+  // Migration 004: Add TickTick sync columns to tasks table
+  `ALTER TABLE tasks ADD COLUMN ticktick_id TEXT`,
+  `ALTER TABLE tasks ADD COLUMN ticktick_project_id TEXT`,
+  `ALTER TABLE tasks ADD COLUMN ticktick_etag TEXT`,
+  `ALTER TABLE tasks ADD COLUMN modified_at INTEGER`,
+  `ALTER TABLE tasks ADD COLUMN is_deleted INTEGER DEFAULT 0`,
 ];
 
 export function useMigrations() {

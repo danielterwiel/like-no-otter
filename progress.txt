@@ -1061,3 +1061,65 @@ Completed:
   - Verifies connect and cancel buttons
   - Tests cancel navigation back to More screen
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-007 (Integrations) - TickTick bidirectional sync
+
+Completed:
+- Extended tasks table schema with TickTick sync fields:
+  - Added ticktick_id column for TickTick task ID
+  - Added ticktick_project_id column for project reference
+  - Added ticktick_etag column for change detection
+  - Added modified_at column for conflict resolution timestamps
+  - Added is_deleted column for soft delete support
+- Added safe migrations in lib/db/hooks/useMigrations.ts for new columns
+- Extended lib/integrations/ticktick/api.ts with task CRUD operations:
+  - TickTickTask interface with all API fields
+  - fetchTickTickTasks(projectId): fetches tasks from a project
+  - createTickTickTask(): creates new task in TickTick
+  - updateTickTickTask(): updates task title, due date, priority
+  - completeTickTickTask(): marks task as completed
+  - uncompleteTickTickTask(): reopens completed task
+- Created lib/integrations/ticktick/sync.ts with bidirectional sync:
+  - syncTickTickTasks(): main sync function
+  - Priority mapping: TickTick 0/1/3/5 to app none/low/medium/high
+  - Pulls tasks from selected TickTick projects
+  - Creates local tasks for new remote tasks
+  - Pushes local-only tasks to first selected project
+  - Conflict resolution: most recent modification wins
+  - Completion status synced bidirectionally
+  - Soft deletes tasks removed from TickTick
+  - Updates lastSyncAt timestamp on successful sync
+  - Sets syncError on failure for UI display
+  - triggerDebouncedSync(): 5-second debounced sync trigger
+  - isSyncing(): check if sync is in progress
+- Extended lib/db/queries/tasks.ts with sync-related functions:
+  - getTaskByTickTickId(): find task by TickTick ID
+  - getTickTickSyncedTasks(): get all synced tasks
+  - getTasksNeedingSync(): get modified synced tasks
+  - getLocalOnlyTasks(): get tasks without ticktick_id
+  - createSyncedTask(): create task with TickTick fields
+  - updateTask(): flexible update with specific fields
+  - getTaskById(): get task by local ID
+  - softDeleteTask(): mark task as deleted
+  - clearTickTickSyncData(): clear sync data on disconnect
+  - Updated all queries to exclude soft-deleted tasks
+  - Updated toggleTaskCompletion to set modified_at
+- Updated providers/HealthKitSyncProvider.tsx:
+  - Added syncTickTickIfConnected() helper function
+  - Syncs TickTick tasks on app foreground
+  - Logs sync results (created, updated, pushed counts)
+- Updated app/(tabs)/more.tsx with sync status display:
+  - Added formatLastSync() for human-readable timestamps
+  - ConnectionCard now shows last sync time when connected
+  - Shows "Sync error" with destructive styling when syncError exists
+  - Error indicator (alert icon in red circle) for sync failures
+  - Status text: "Synced [time]" or "Sync error" or "Not connected"
+- Updated lib/integrations/ticktick/index.ts to export sync module
+- Created maestro/us-007-ticktick-sync.yaml E2E test:
+  - Verifies More tab and TickTick connection card
+  - Verifies disconnected status indicator
+  - Tests navigation to TickTick connect screen
+  - Verifies bidirectional sync info
+  - Tests navigation to Tasks tab
+  - Verifies section headers visible
+- All checks pass: npm run check (format, lint, types, tests, audit)

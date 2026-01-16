@@ -14,6 +14,7 @@ import { invalidateHealthQueries } from "./QueryProvider";
 import { useHealthKit } from "./HealthKitProvider";
 import { useToast } from "@/components/ui/toast";
 import { syncWhoopData } from "@/lib/integrations/whoop";
+import { syncTickTickTasks } from "@/lib/integrations/ticktick";
 import { getConnection } from "@/lib/integrations/connection-manager";
 
 interface HealthKitSyncContextValue {
@@ -56,6 +57,27 @@ async function syncWhoopDataIfConnected(): Promise<void> {
     }
   } catch (error) {
     console.error("Error checking Whoop connection:", error);
+  }
+}
+
+// Helper to sync TickTick tasks if service is connected
+async function syncTickTickIfConnected(): Promise<void> {
+  if (Platform.OS === "web") return;
+
+  try {
+    const connection = await getConnection("ticktick");
+    if (connection?.status === "connected") {
+      const result = await syncTickTickTasks();
+      if (result.success) {
+        console.log(
+          `Synced TickTick: ${result.created} created, ${result.updated} updated, ${result.pushed} pushed`,
+        );
+      } else if (result.error) {
+        console.warn("TickTick sync failed:", result.error);
+      }
+    }
+  } catch (error) {
+    console.error("Error checking TickTick connection:", error);
   }
 }
 
@@ -105,6 +127,9 @@ export function HealthKitSyncProvider({ children }: HealthKitSyncProviderProps) 
 
       // Sync Whoop data if connected
       await syncWhoopDataIfConnected();
+
+      // Sync TickTick tasks if connected
+      await syncTickTickIfConnected();
 
       return result;
     } catch (error) {

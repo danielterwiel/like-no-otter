@@ -8,15 +8,45 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useConnections } from "@/lib/integrations";
 import type { ServiceType } from "@/lib/db/schema/connections";
 
+function formatLastSync(date: Date | null): string {
+  if (!date) return "Never synced";
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
 interface ConnectionCardProps {
   service: ServiceType;
   name: string;
   icon: React.ReactNode;
   isConnected: boolean;
+  lastSyncAt: Date | null;
+  syncError: string | null;
   onPress: () => void;
 }
 
-function ConnectionCard({ service, name, icon, isConnected, onPress }: ConnectionCardProps) {
+function ConnectionCard({
+  service,
+  name,
+  icon,
+  isConnected,
+  lastSyncAt,
+  syncError,
+  onPress,
+}: ConnectionCardProps) {
+  const getStatusText = () => {
+    if (!isConnected) return "Not connected";
+    if (syncError) return "Sync error";
+    return `Synced ${formatLastSync(lastSyncAt)}`;
+  };
+
   return (
     <TouchableOpacity testID={`connection-card-${service}`} onPress={onPress} activeOpacity={0.7}>
       <Card className="mb-3">
@@ -27,19 +57,30 @@ function ConnectionCard({ service, name, icon, isConnected, onPress }: Connectio
             </View>
             <View>
               <Text className="text-base font-semibold text-foreground">{name}</Text>
-              <Text className="text-sm text-muted-foreground">
-                {isConnected ? "Connected" : "Not connected"}
+              <Text
+                className={`text-sm ${syncError ? "text-destructive" : "text-muted-foreground"}`}
+              >
+                {getStatusText()}
               </Text>
             </View>
           </View>
           <View className="flex-row items-center">
             {isConnected ? (
-              <View
-                testID={`connection-status-${service}-connected`}
-                className="h-6 w-6 items-center justify-center rounded-full bg-green-500"
-              >
-                <Ionicons name="checkmark" size={16} color="#fff" />
-              </View>
+              syncError ? (
+                <View
+                  testID={`connection-status-${service}-error`}
+                  className="h-6 w-6 items-center justify-center rounded-full bg-destructive"
+                >
+                  <Ionicons name="alert" size={14} color="#fff" />
+                </View>
+              ) : (
+                <View
+                  testID={`connection-status-${service}-connected`}
+                  className="h-6 w-6 items-center justify-center rounded-full bg-green-500"
+                >
+                  <Ionicons name="checkmark" size={16} color="#fff" />
+                </View>
+              )
             ) : (
               <View
                 testID={`connection-status-${service}-disconnected`}
@@ -58,7 +99,7 @@ function ConnectionCard({ service, name, icon, isConnected, onPress }: Connectio
 
 export default function MoreScreen() {
   const router = useRouter();
-  const { isConnected, isLoading, refresh } = useConnections();
+  const { connections, isConnected, isLoading, refresh } = useConnections();
 
   // Refresh connection status when screen comes into focus
   useFocusEffect(
@@ -102,6 +143,8 @@ export default function MoreScreen() {
                 name="Whoop"
                 icon={<MaterialCommunityIcons name="watch" size={24} color="#00A2E8" />}
                 isConnected={isConnected("whoop")}
+                lastSyncAt={connections.whoop?.lastSyncAt ?? null}
+                syncError={connections.whoop?.syncError ?? null}
                 onPress={() => handleConnectionPress("whoop")}
               />
 
@@ -110,6 +153,8 @@ export default function MoreScreen() {
                 name="TickTick"
                 icon={<Ionicons name="checkbox-outline" size={24} color="#4772FA" />}
                 isConnected={isConnected("ticktick")}
+                lastSyncAt={connections.ticktick?.lastSyncAt ?? null}
+                syncError={connections.ticktick?.syncError ?? null}
                 onPress={() => handleConnectionPress("ticktick")}
               />
 
@@ -118,6 +163,8 @@ export default function MoreScreen() {
                 name="Strong"
                 icon={<MaterialCommunityIcons name="dumbbell" size={24} color="#2196F3" />}
                 isConnected={isConnected("strong")}
+                lastSyncAt={connections.strong?.lastSyncAt ?? null}
+                syncError={connections.strong?.syncError ?? null}
                 onPress={() => handleConnectionPress("strong")}
               />
             </>
