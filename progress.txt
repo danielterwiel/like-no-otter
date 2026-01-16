@@ -852,3 +852,44 @@ Completed:
   - Tests navigation to each connect screen and back
   - Verifies connection state persists after navigation
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-003 (Integrations) - Whoop OAuth connection flow
+
+Completed:
+- Installed expo-auth-session, expo-web-browser, expo-crypto for OAuth 2.0 support
+- Created lib/integrations/whoop/oauth.ts with OAuth configuration and token exchange:
+  - WHOOP_AUTH_URL: https://api.whoop.com/oauth/oauth2/auth
+  - WHOOP_TOKEN_URL: https://api.whoop.com/oauth/oauth2/token
+  - WHOOP_SCOPES: read:recovery, read:sleep, read:cycles, read:workout, read:profile, read:body_measurement, offline
+  - getWhoopRedirectUri(): generates redirect URI using app scheme (likenootter://oauth/whoop)
+  - exchangeWhoopCode(): exchanges authorization code for tokens, saves to secure storage, updates connection status
+  - ExchangeResult interface for success/error handling
+- Created lib/integrations/whoop/index.ts to export OAuth utilities
+- Updated lib/integrations/index.ts to export whoop module
+- Created lib/integrations/whoop/oauth.test.ts with 7 unit tests (TDD approach):
+  - Tests OAuth URL constants
+  - Tests required scopes array
+  - Tests token exchange with mocked expo-auth-session
+  - Tests token storage after successful exchange
+  - Tests connection status update after exchange
+  - Tests error handling on failed exchange
+  - Tests redirect URI generation
+- Updated app/connect/whoop.tsx with full OAuth flow:
+  - Uses useAuthRequest hook from expo-auth-session
+  - Shows data access explanation (recovery, sleep, strain, workouts)
+  - Connect button initiates OAuth authorization request
+  - Handles OAuth response (success extracts code, error shows message)
+  - Exchanges authorization code for tokens automatically
+  - Shows connected state with green checkmark when connected
+  - Shows error state with alert icon when connection fails
+  - Disconnect button clears tokens and resets connection status
+  - Loading states with ActivityIndicator during async operations
+  - Web platform fallback message
+- App scheme "likenootter" already configured in app.json
+- Created maestro/us-003-whoop-oauth.yaml E2E test:
+  - Verifies navigation to Whoop connect screen
+  - Verifies data access info displayed
+  - Verifies all data types explained (recovery, sleep, strain, workouts)
+  - Verifies connect and cancel buttons
+  - Tests cancel navigation back to More screen
+- All checks pass: npm run check (format, lint, types, tests, audit)

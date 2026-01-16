@@ -132,7 +132,7 @@
         "Maestro test passes: maestro/us-003-whoop-oauth.yaml"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Whoop OAuth docs: https://developer.whoop.com/docs/developing/oauth/"
     },
     {

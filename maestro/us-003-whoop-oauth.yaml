@@ -1,0 +1,88 @@
+# US-003: Whoop OAuth connection flow
+# Verifies Whoop connection screen with OAuth elements
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 15000
+
+# Navigate to More tab
+- tapOn:
+    text: "More"
+
+# Verify More screen is visible
+- assertVisible:
+    id: "screen-more"
+
+# Navigate to Whoop connect screen
+- tapOn:
+    id: "connection-card-whoop"
+
+# Verify Whoop connection screen is visible
+- assertVisible:
+    id: "screen-connect-whoop"
+
+- assertVisible:
+    text: "Connect Whoop"
+
+# Verify data access info is displayed
+- assertVisible:
+    id: "whoop-data-info"
+
+- assertVisible:
+    text: "Data Access"
+
+# Verify all data types are explained
+- assertVisible:
+    text: "Recovery scores"
+
+- assertVisible:
+    text: "Sleep data"
+
+- assertVisible:
+    text: "Strain scores"
+
+- assertVisible:
+    text: "Workout data"
+
+# Verify connect button is visible
+- assertVisible:
+    id: "whoop-connect-button"
+
+- assertVisible:
+    text: "Connect Whoop Account"
+
+# Verify cancel button is visible
+- assertVisible:
+    id: "whoop-cancel-button"
+
+- assertVisible:
+    text: "Cancel"
+
+# Test cancel navigation
+- tapOn:
+    id: "whoop-cancel-button"
+
+# Verify we're back on More screen
+- assertVisible:
+    id: "screen-more"
+
+# Navigate back to verify disconnect button shows when connected
+# (This test only verifies UI elements - actual OAuth requires real credentials)
+- tapOn:
+    id: "connection-card-whoop"
+
+- assertVisible:
+    id: "screen-connect-whoop"
+
+# Go back
+- tapOn:
+    id: "whoop-cancel-button"
+
+- assertVisible:
+    id: "screen-more"

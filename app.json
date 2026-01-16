@@ -38,7 +38,8 @@
           "healthUpdatePermission": "Allow Like No Otter to save your workout data to Apple Health."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ]
   }
 }
