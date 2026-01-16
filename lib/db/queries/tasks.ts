@@ -152,3 +152,66 @@ export async function getIncompleteTaskCount(): Promise<number> {
     return 0;
   }
 }
+
+export type TaskSection = "today" | "upcoming" | "done";
+
+export interface TasksBySection {
+  today: TaskRecord[];
+  upcoming: TaskRecord[];
+  done: TaskRecord[];
+}
+
+/**
+ * Get tasks grouped by section (Today, Upcoming, Done)
+ * - Today: tasks due today or overdue (incomplete only)
+ * - Upcoming: tasks due in the future or no due date (incomplete only)
+ * - Done: completed tasks
+ */
+export async function getTasksBySection(): Promise<TasksBySection> {
+  if (IS_WEB) {
+    return { today: [], upcoming: [], done: [] };
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    // Get today's date at midnight for comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+
+    // Get all tasks
+    const rows = db.getAllSync<TaskRow>(
+      `SELECT * FROM tasks ORDER BY
+         CASE WHEN due_date IS NULL THEN 1 ELSE 0 END,
+         due_date,
+         created_at DESC`,
+    );
+
+    const tasks = rows.map(parseTaskRow);
+
+    const result: TasksBySection = {
+      today: [],
+      upcoming: [],
+      done: [],
+    };
+
+    for (const task of tasks) {
+      if (task.isCompleted) {
+        result.done.push(task);
+      } else if (task.dueDate && task.dueDate <= todayStr) {
+        // Due today or overdue
+        result.today.push(task);
+      } else {
+        // Due in future or no due date
+        result.upcoming.push(task);
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Failed to get tasks by section:", error);
+    return { today: [], upcoming: [], done: [] };
+  }
+}

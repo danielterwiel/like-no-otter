@@ -1,11 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
-import { View, TouchableOpacity, Platform, RefreshControl } from "react-native";
-import { FlashList } from "@shopify/flash-list";
+import { useState, useCallback } from "react";
+import { View, TouchableOpacity, Platform, RefreshControl, SectionList } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAllTasks, type TaskRecord, type TaskPriority } from "@/lib/db";
+import {
+  getTasksBySection,
+  type TaskRecord,
+  type TaskPriority,
+  type TasksBySection,
+} from "@/lib/db";
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
   none: "#888",
@@ -71,23 +75,82 @@ function TaskItem({ task }: TaskItemProps) {
   );
 }
 
+interface SectionHeaderProps {
+  title: string;
+  count: number;
+  isCollapsed?: boolean;
+  onToggle?: () => void;
+  isCollapsible?: boolean;
+}
+
+function SectionHeader({ title, count, isCollapsed, onToggle, isCollapsible }: SectionHeaderProps) {
+  return (
+    <TouchableOpacity
+      testID={`section-header-${title.toLowerCase()}`}
+      onPress={isCollapsible ? onToggle : undefined}
+      disabled={!isCollapsible}
+      className="flex-row items-center justify-between bg-muted/50 px-4 py-2"
+      activeOpacity={isCollapsible ? 0.7 : 1}
+    >
+      <View className="flex-row items-center">
+        <Text className="text-base font-semibold text-foreground">{title}</Text>
+        <Text className="ml-2 text-sm text-muted-foreground">({count})</Text>
+      </View>
+      {isCollapsible && (
+        <Ionicons name={isCollapsed ? "chevron-down" : "chevron-up"} size={18} color="#888" />
+      )}
+    </TouchableOpacity>
+  );
+}
+
+interface SectionEmptyProps {
+  section: string;
+}
+
+function SectionEmpty({ section }: SectionEmptyProps) {
+  let message = "";
+  switch (section) {
+    case "Today":
+      message = "No tasks due today";
+      break;
+    case "Upcoming":
+      message = "No upcoming tasks";
+      break;
+    case "Done":
+      message = "No completed tasks";
+      break;
+  }
+
+  return (
+    <View className="bg-card px-4 py-3">
+      <Text className="text-center text-sm text-muted-foreground">{message}</Text>
+    </View>
+  );
+}
+
+interface TaskSectionData {
+  title: string;
+  data: TaskRecord[];
+  isCollapsible?: boolean;
+}
+
 export default function TasksScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<TaskRecord[]>([]);
+  const [tasksBySection, setTasksBySection] = useState<TasksBySection>({
+    today: [],
+    upcoming: [],
+    done: [],
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isDoneCollapsed, setIsDoneCollapsed] = useState(true);
 
   const loadTasks = useCallback(async () => {
-    const taskList = await getAllTasks();
-    setTasks(taskList);
+    const sections = await getTasksBySection();
+    setTasksBySection(sections);
     setIsLoading(false);
     setIsRefreshing(false);
   }, []);
-
-  // Load on mount
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
 
   // Reload when tab comes into focus
   useFocusEffect(
@@ -105,9 +168,23 @@ export default function TasksScreen() {
     router.push("/task/create");
   }, [router]);
 
-  const renderTaskItem = useCallback(({ item }: { item: TaskRecord }) => {
-    return <TaskItem task={item} />;
+  const toggleDoneSection = useCallback(() => {
+    setIsDoneCollapsed((prev) => !prev);
   }, []);
+
+  // Build sections for SectionList
+  const sections: TaskSectionData[] = [
+    { title: "Today", data: tasksBySection.today },
+    { title: "Upcoming", data: tasksBySection.upcoming },
+    {
+      title: "Done",
+      data: isDoneCollapsed ? [] : tasksBySection.done,
+      isCollapsible: true,
+    },
+  ];
+
+  const totalTasks =
+    tasksBySection.today.length + tasksBySection.upcoming.length + tasksBySection.done.length;
 
   if (Platform.OS === "web") {
     return (
@@ -137,7 +214,7 @@ export default function TasksScreen() {
         <View className="flex-1 items-center justify-center">
           <Text className="text-muted-foreground">Loading tasks...</Text>
         </View>
-      ) : tasks.length === 0 ? (
+      ) : totalTasks === 0 ? (
         <View className="flex-1 items-center justify-center p-4">
           <Card className="w-full max-w-sm">
             <CardContent className="items-center p-6">
@@ -152,12 +229,36 @@ export default function TasksScreen() {
           </Card>
         </View>
       ) : (
-        <FlashList
+        <SectionList
           testID="task-list"
-          data={tasks}
-          renderItem={renderTaskItem}
+          sections={sections}
           keyExtractor={(item) => String(item.id)}
+          renderItem={({ item }) => <TaskItem task={item} />}
+          renderSectionHeader={({ section }) => (
+            <SectionHeader
+              title={section.title}
+              count={section.title === "Done" ? tasksBySection.done.length : section.data.length}
+              isCollapsed={section.title === "Done" ? isDoneCollapsed : undefined}
+              onToggle={section.title === "Done" ? toggleDoneSection : undefined}
+              isCollapsible={section.isCollapsible}
+            />
+          )}
+          renderSectionFooter={({ section }) => {
+            // Show empty state for Today/Upcoming if empty
+            // For Done section, show empty only when expanded and empty
+            if (section.title === "Done") {
+              if (!isDoneCollapsed && tasksBySection.done.length === 0) {
+                return <SectionEmpty section={section.title} />;
+              }
+              return null;
+            }
+            if (section.data.length === 0) {
+              return <SectionEmpty section={section.title} />;
+            }
+            return null;
+          }}
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+          stickySectionHeadersEnabled={false}
         />
       )}
     </View>

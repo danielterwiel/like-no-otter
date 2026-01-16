@@ -386,7 +386,7 @@
         "Maestro test passes: maestro/us-018-task-list-view.yaml"
       ],
       "priority": 18,
-      "passes": false,
+      "passes": true,
       "notes": "Simple agenda-style view, no calendar"
     },
     {

@@ -13,20 +13,31 @@ appId: com.likenootter.app
 - tapOn:
     text: "Tasks"
 
-# Verify section headers are visible (when implemented)
+# Verify we're on the tasks screen
+- assertVisible:
+    id: "screen-tasks"
+
+# Verify section headers are visible
+- assertVisible:
+    id: "section-header-today"
+
+- assertVisible:
+    id: "section-header-upcoming"
+
+- assertVisible:
+    id: "section-header-done"
+
+# Verify section header text content
 - assertVisible:
     text: "Today"
-    optional: true
 
 - assertVisible:
     text: "Upcoming"
-    optional: true
 
 - assertVisible:
     text: "Done"
-    optional: true
 
-# Verify task list container
+# Verify task list container (when tasks exist)
 - assertVisible:
     id: "task-list"
     optional: true

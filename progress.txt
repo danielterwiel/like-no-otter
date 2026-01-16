@@ -642,3 +642,33 @@ Completed:
   - Tests save button returns to Tasks tab
   - Verifies new task appears in list
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-018 - Task list view
+
+Completed:
+- Created getTasksBySection() query function in lib/db/queries/tasks.ts:
+  - Groups tasks into Today, Upcoming, and Done sections
+  - Today: tasks due today or overdue (incomplete only)
+  - Upcoming: tasks due in future or no due date (incomplete only)
+  - Done: completed tasks
+  - Returns TasksBySection interface with typed arrays
+- Updated app/(tabs)/tasks.tsx with sectioned task list:
+  - Replaced FlashList with SectionList for section grouping
+  - Added SectionHeader component with title, count, and collapse toggle
+  - Today section: shows tasks due today or overdue
+  - Upcoming section: shows tasks due in the future
+  - Done section: collapsed by default, expandable with chevron button
+  - Added SectionEmpty component for empty state per section
+  - Empty states: "No tasks due today", "No upcoming tasks", "No completed tasks"
+  - Tasks sorted by due date within sections
+  - Priority indicator (colored dot) preserved from previous implementation
+  - Pull-to-refresh support maintained
+  - Overall empty state when no tasks exist at all
+- Added testIDs for E2E testing:
+  - section-header-today, section-header-upcoming, section-header-done
+  - task-list for SectionList container
+- Updated maestro/us-018-task-list-view.yaml:
+  - Verifies all three section headers are visible
+  - Verifies section text content (Today, Upcoming, Done)
+  - Verifies task list container
+- All checks pass: npm run check (format, lint, types, tests, audit)
