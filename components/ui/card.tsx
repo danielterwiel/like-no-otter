@@ -1,7 +1,7 @@
 import * as React from "react";
 import { View } from "react-native";
 import { cn } from "@/lib/utils";
-import { TextClassContext } from "@/components/ui/text";
+import { Text, TextClassContext } from "@/components/ui/text";
 
 interface CardProps extends React.ComponentPropsWithoutRef<typeof View> {
   className?: string;
@@ -34,21 +34,25 @@ const CardHeader = React.forwardRef<React.ElementRef<typeof View>, CardHeaderPro
 );
 CardHeader.displayName = "CardHeader";
 
-interface CardTitleProps extends React.ComponentPropsWithoutRef<typeof View> {
+interface CardTitleProps extends React.ComponentPropsWithoutRef<typeof Text> {
   className?: string;
 }
 
-const CardTitle = React.forwardRef<React.ElementRef<typeof View>, CardTitleProps>(
-  ({ className, ...props }, ref) => <View ref={ref} className={cn("", className)} {...props} />,
+const CardTitle = React.forwardRef<React.ElementRef<typeof Text>, CardTitleProps>(
+  ({ className, ...props }, ref) => (
+    <Text ref={ref} className={cn("text-xl font-semibold leading-none", className)} {...props} />
+  ),
 );
 CardTitle.displayName = "CardTitle";
 
-interface CardDescriptionProps extends React.ComponentPropsWithoutRef<typeof View> {
+interface CardDescriptionProps extends React.ComponentPropsWithoutRef<typeof Text> {
   className?: string;
 }
 
-const CardDescription = React.forwardRef<React.ElementRef<typeof View>, CardDescriptionProps>(
-  ({ className, ...props }, ref) => <View ref={ref} className={cn("", className)} {...props} />,
+const CardDescription = React.forwardRef<React.ElementRef<typeof Text>, CardDescriptionProps>(
+  ({ className, ...props }, ref) => (
+    <Text ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+  ),
 );
 CardDescription.displayName = "CardDescription";
 
