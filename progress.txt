@@ -218,3 +218,38 @@ Completed:
   - Added extendedWaitUntil command support
   - Added US-005 to completed tests list
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-006 - Health metrics cards
+
+Completed:
+- Created components/ui/card.tsx with react-native-reusables Card component:
+  - Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter
+  - Styled with NativeWind (rounded-xl, border, shadow)
+  - TextClassContext integration for text styling inheritance
+- Created lib/health/queries.ts with HealthKit data fetching functions:
+  - fetchSleepData(): returns total hours and start/end times
+  - fetchStepsData(): returns step count for today
+  - fetchCaloriesData(): returns active calories burned
+  - fetchHeartRateData(): returns resting heart rate in BPM
+  - fetchTodayHealthData(): fetches all metrics in parallel
+  - Platform-specific implementations (iOS vs mock for web/other)
+- Updated lib/health/index.ts to export new query functions and types
+- Created components/health/ directory with metric card components:
+  - SleepCard.tsx: displays total sleep hours and start/end times
+  - StepsCard.tsx: displays formatted step count (e.g., "12,534 steps")
+  - CaloriesCard.tsx: displays active calories burned
+  - RHRCard.tsx: displays resting heart rate in BPM
+  - Each card has testID for E2E testing (sleep-card, steps-card, etc.)
+  - Each card shows loading state (ActivityIndicator) while fetching
+  - Each card shows empty state ("No data") when no data available
+  - Icons from @expo/vector-icons (Ionicons): bed, footsteps, flame, heart
+- Updated app/(tabs)/health.tsx:
+  - Displays 4 metric cards in 2x2 grid layout
+  - Fetches health data on mount when authorized on iOS
+  - Shows appropriate states for non-iOS and denied authorization
+  - Uses ScrollView for scrollable content
+- Updated maestro/us-006-health-metrics-cards.yaml:
+  - Removed optional flags (cards are now required)
+  - Tests verify all 4 cards are visible after navigating to Health tab
+- Updated scripts/e2e-runner.ts to include US-006 in completed tests
+- All checks pass: npm run check (format, lint, types, tests, audit)

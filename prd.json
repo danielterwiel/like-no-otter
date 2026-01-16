@@ -172,7 +172,7 @@
         "Maestro test passes: maestro/us-006-health-metrics-cards.yaml"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "Query HealthKit for today's data"
     },
     {

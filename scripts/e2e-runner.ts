@@ -200,7 +200,8 @@ async function main() {
       f.includes("us-002-database-setup") ||
       f.includes("us-003-tab-navigation") ||
       f.includes("us-004-seed-exercises") ||
-      f.includes("us-005-healthkit-permissions"),
+      f.includes("us-005-healthkit-permissions") ||
+      f.includes("us-006-health-metrics-cards"),
   );
 
   if (completedTests.length === 0) {

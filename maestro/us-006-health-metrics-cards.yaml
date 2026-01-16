@@ -13,19 +13,15 @@ appId: com.likenootter.app
 - tapOn:
     text: "Health"
 
-# Verify health metric cards are visible (when implemented)
+# Verify health metric cards are visible
 - assertVisible:
     id: "sleep-card"
-    optional: true
 
 - assertVisible:
     id: "steps-card"
-    optional: true
 
 - assertVisible:
     id: "calories-card"
-    optional: true
 
 - assertVisible:
     id: "rhr-card"
-    optional: true
