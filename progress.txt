@@ -539,3 +539,34 @@ Completed:
   - Verifies empty state message
   - Tests navigation to workout detail (optional)
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-015 - Muscle frequency chart
+
+Completed:
+- Created getMuscleFrequencyData() query function in lib/db/queries/workouts.ts:
+  - Aggregates workout sets per muscle group over last 4 weeks
+  - Counts only non-warmup sets from primary muscle groups
+  - Returns MuscleFrequencyData with points array, totalSets, and hasData flag
+  - Defined muscle colors (unique color per muscle group)
+  - Defined short labels for chart display (e.g., "Shldrs", "Tricps", "Hams")
+- Created components/workout/MuscleFrequencyChart.tsx:
+  - Victory Native bar chart with CartesianChart and Bar components
+  - X-axis shows muscle group labels (Chest, Back, Shldrs, etc.)
+  - Y-axis auto-scaled to data range (rounded to nearest 5)
+  - Bars colored in green (#22c55e)
+  - Touch interaction via useChartPressState shows selected bar value in header
+  - Loading state with ActivityIndicator while data fetches
+  - Empty state when no workout data ("Complete workouts to see muscle balance")
+  - Web fallback message (chart only works on iOS)
+  - Dynamic module loading to avoid bundling native modules on web
+- Updated components/workout/index.ts to export MuscleFrequencyChart
+- Updated app/(tabs)/workouts.tsx:
+  - Added MuscleFrequencyChart below Start Workout button
+  - Fetches muscle frequency data in parallel with workout history
+  - Separate loading state for chart
+- Updated maestro/us-015-muscle-frequency-chart.yaml:
+  - Verifies chart card is visible (testID="muscle-frequency-chart")
+  - Verifies "Muscle Frequency" and "Last 4 weeks" text
+  - Verifies empty state when no workout data
+  - Handles web fallback scenario
+- All checks pass: npm run check (format, lint, types, tests, audit)

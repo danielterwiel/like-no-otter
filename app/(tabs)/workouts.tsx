@@ -5,9 +5,14 @@ import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WorkoutCard } from "@/components/workout";
+import { WorkoutCard, MuscleFrequencyChart } from "@/components/workout";
 import { getExerciseCount } from "@/lib/db";
-import { getWorkoutHistory, type WorkoutHistoryItem } from "@/lib/db/queries/workouts";
+import {
+  getWorkoutHistory,
+  getMuscleFrequencyData,
+  type WorkoutHistoryItem,
+  type MuscleFrequencyData,
+} from "@/lib/db/queries/workouts";
 
 const IS_WEB = Platform.OS === "web";
 
@@ -15,14 +20,22 @@ export default function WorkoutsScreen() {
   const router = useRouter();
   const [exerciseCount, setExerciseCount] = useState<number>(0);
   const [workouts, setWorkouts] = useState<WorkoutHistoryItem[]>([]);
+  const [muscleFrequency, setMuscleFrequency] = useState<MuscleFrequencyData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMuscleFrequencyLoading, setIsMuscleFrequencyLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [count, history] = await Promise.all([getExerciseCount(), getWorkoutHistory()]);
+    const [count, history, frequency] = await Promise.all([
+      getExerciseCount(),
+      getWorkoutHistory(),
+      getMuscleFrequencyData(),
+    ]);
     setExerciseCount(count);
     setWorkouts(history);
+    setMuscleFrequency(frequency);
     setIsLoading(false);
+    setIsMuscleFrequencyLoading(false);
   }, []);
 
   useEffect(() => {
@@ -65,6 +78,11 @@ export default function WorkoutsScreen() {
         <Ionicons name="add-circle" size={24} color="#fff" />
         <Text className="ml-2 text-lg font-semibold text-primary-foreground">Start Workout</Text>
       </TouchableOpacity>
+
+      {/* Muscle Frequency Chart */}
+      <View className="mb-4">
+        <MuscleFrequencyChart data={muscleFrequency} isLoading={isMuscleFrequencyLoading} />
+      </View>
 
       {/* Exercise Count Card */}
       <Card className="mb-4">

@@ -333,7 +333,7 @@
         "Maestro test passes: maestro/us-015-muscle-frequency-chart.yaml"
       ],
       "priority": 15,
-      "passes": false,
+      "passes": true,
       "notes": "Helps identify muscle imbalances"
     },
     {

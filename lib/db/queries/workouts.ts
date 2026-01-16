@@ -2,6 +2,19 @@ import { Platform } from "react-native";
 import type { WorkoutExerciseState } from "@/lib/workout";
 import type { MuscleGroup } from "@/constants/exercises";
 
+const ALL_MUSCLE_GROUPS: MuscleGroup[] = [
+  "chest",
+  "back",
+  "shoulders",
+  "biceps",
+  "triceps",
+  "quads",
+  "hamstrings",
+  "glutes",
+  "calves",
+  "abs",
+];
+
 const DATABASE_NAME = "likenootter.db";
 const IS_WEB = Platform.OS === "web";
 
@@ -358,5 +371,127 @@ export async function saveWorkout(input: SaveWorkoutInput): Promise<SaveWorkoutR
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
     };
+  }
+}
+
+/**
+ * Muscle frequency data for the chart
+ */
+export interface MuscleFrequencyPoint {
+  muscle: MuscleGroup;
+  label: string;
+  sets: number;
+  color: string;
+}
+
+export interface MuscleFrequencyData {
+  points: MuscleFrequencyPoint[];
+  totalSets: number;
+  hasData: boolean;
+}
+
+// Colors for each muscle group
+const MUSCLE_COLORS: Record<MuscleGroup, string> = {
+  chest: "#ef4444", // red
+  back: "#3b82f6", // blue
+  shoulders: "#f97316", // orange
+  biceps: "#8b5cf6", // purple
+  triceps: "#ec4899", // pink
+  quads: "#22c55e", // green
+  hamstrings: "#14b8a6", // teal
+  glutes: "#f59e0b", // amber
+  calves: "#6366f1", // indigo
+  abs: "#06b6d4", // cyan
+};
+
+// Short labels for chart display
+const MUSCLE_LABELS: Record<MuscleGroup, string> = {
+  chest: "Chest",
+  back: "Back",
+  shoulders: "Shldrs",
+  biceps: "Biceps",
+  triceps: "Tricps",
+  quads: "Quads",
+  hamstrings: "Hams",
+  glutes: "Glutes",
+  calves: "Calves",
+  abs: "Abs",
+};
+
+/**
+ * Get muscle frequency data aggregated from last 4 weeks
+ * Counts sets per muscle group (primary muscles only, excludes warmup sets)
+ */
+export async function getMuscleFrequencyData(): Promise<MuscleFrequencyData> {
+  if (IS_WEB) {
+    return { points: [], totalSets: 0, hasData: false };
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    // Calculate 4 weeks ago timestamp
+    const fourWeeksAgo = new Date();
+    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
+    const fourWeeksAgoTimestamp = Math.floor(fourWeeksAgo.getTime() / 1000);
+
+    // Query to get set counts per exercise, joined with exercise data
+    // Only count non-warmup sets from workouts in the last 4 weeks
+    const results = db.getAllSync<{
+      primary_muscles: string;
+      set_count: number;
+    }>(
+      `SELECT e.primary_muscles, COUNT(ws.id) as set_count
+       FROM workout_sets ws
+       JOIN workout_exercises we ON ws.workout_exercise_id = we.id
+       JOIN workouts w ON we.workout_id = w.id
+       JOIN exercises e ON we.exercise_id = e.id
+       WHERE w.start_time >= ? AND ws.is_warmup = 0
+       GROUP BY we.exercise_id`,
+      fourWeeksAgoTimestamp,
+    );
+
+    // Aggregate sets by muscle group
+    const muscleSetCounts: Record<MuscleGroup, number> = {
+      chest: 0,
+      back: 0,
+      shoulders: 0,
+      biceps: 0,
+      triceps: 0,
+      quads: 0,
+      hamstrings: 0,
+      glutes: 0,
+      calves: 0,
+      abs: 0,
+    };
+
+    for (const row of results) {
+      const muscles = row.primary_muscles.split(",").map((m) => m.trim()) as MuscleGroup[];
+      for (const muscle of muscles) {
+        if (muscleSetCounts[muscle] !== undefined) {
+          muscleSetCounts[muscle] += row.set_count;
+        }
+      }
+    }
+
+    // Build points array
+    const points: MuscleFrequencyPoint[] = ALL_MUSCLE_GROUPS.map((muscle) => ({
+      muscle,
+      label: MUSCLE_LABELS[muscle],
+      sets: muscleSetCounts[muscle],
+      color: MUSCLE_COLORS[muscle],
+    }));
+
+    const totalSets = points.reduce((sum, p) => sum + p.sets, 0);
+
+    return {
+      points,
+      totalSets,
+      hasData: totalSets > 0,
+    };
+  } catch (error) {
+    console.error("Failed to fetch muscle frequency data:", error);
+    return { points: [], totalSets: 0, hasData: false };
   }
 }

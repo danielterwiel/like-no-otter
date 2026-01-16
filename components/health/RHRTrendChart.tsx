@@ -155,10 +155,16 @@ function ChartContent({
     ? useChartPressState({ x: "", y: { value: 0 } })
     : null;
 
-  // Report press state changes to parent
+  // Report press state to parent once on mount
+  // The chartPressState object reference changes every render, but its internal
+  // SharedValues are stable. We only need to pass the reference once.
+  const hasReportedRef = React.useRef(false);
   React.useEffect(() => {
-    onPressStateChange(chartPressState);
-  }, [chartPressState, chartPressState?.isActive, onPressStateChange]);
+    if (chartPressState && !hasReportedRef.current) {
+      hasReportedRef.current = true;
+      onPressStateChange(chartPressState);
+    }
+  }, [chartPressState, onPressStateChange]);
 
   if (!CartesianChart || !Line) {
     return null;

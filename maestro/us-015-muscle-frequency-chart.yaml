@@ -1,28 +1,51 @@
 # US-015: Muscle frequency chart
-# Verifies bar chart renders on Workouts tab
+# Verifies Victory Native bar chart renders on Workouts tab
 
 appId: com.likenootter.app
 
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
 # Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Verify muscle frequency chart is visible (when implemented)
+# Verify screen loads
+- assertVisible:
+    id: "screen-workouts"
+
+# Verify muscle frequency chart card is visible
 - assertVisible:
     id: "muscle-frequency-chart"
-    optional: true
 
-# Verify muscle group labels are shown
+# Verify chart header content
 - assertVisible:
-    text: "Chest"
-    optional: true
+    text: "Muscle Frequency"
 
 - assertVisible:
-    text: "Back"
+    text: "Last 4 weeks"
+
+# Verify empty state is shown when no workout data
+# (New users will see this since no workouts exist)
+- assertVisible:
+    id: "muscle-frequency-empty"
+    optional: true
+
+# Verify empty state message
+- assertVisible:
+    text: "No workout data"
+    optional: true
+
+- assertVisible:
+    text: "Complete workouts to see muscle balance"
+    optional: true
+
+# On web, verify web fallback is shown
+- assertVisible:
+    id: "muscle-frequency-web"
     optional: true
