@@ -702,3 +702,43 @@ Completed:
   - Tests full flow: create task -> complete via checkbox -> verify Done section
   - Tests uncomplete functionality
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-020 - Loading states and empty states
+
+Completed:
+- Created components/ui/skeleton.tsx with animated Skeleton component:
+  - Animated opacity pulsing effect (0.3 to 0.7 over 2 seconds)
+  - Supports width/height via DimensionValue (number or percentage)
+  - Circle prop for rounded avatars/icons
+  - SkeletonCard: pre-configured card skeleton matching health card layout
+  - SkeletonWorkoutCard: skeleton for workout history cards
+  - SkeletonTaskItem: skeleton for task list items
+- Created components/ui/empty-state.tsx with reusable EmptyState component:
+  - Icon from Ionicons with customizable color and size
+  - Title and optional description text
+  - Optional action slot for buttons
+  - Consistent styling with circular icon background
+  - Pre-configured variants: EmptyWorkouts, EmptyTasks, EmptyHealthDenied, EmptyHealthData
+- Updated health card components (SleepCard, StepsCard, CaloriesCard, RHRCard):
+  - Replaced ActivityIndicator with Skeleton loaders
+  - Added testIDs for skeleton states (sleep-skeleton, steps-skeleton, etc.)
+  - Skeleton shows value placeholder and label placeholder
+- Updated RHRTrendChart:
+  - Replaced ActivityIndicator with bar-chart style skeleton
+  - 7 vertical skeleton bars simulating chart data
+- Updated MuscleFrequencyChart:
+  - Replaced ActivityIndicator with bar-chart style skeleton
+  - 10 vertical skeleton bars simulating muscle group data
+- Updated app/(tabs)/workouts.tsx:
+  - Added SkeletonWorkoutCard for loading state (3 skeleton cards)
+  - Added EmptyWorkouts component for empty state
+  - Loading skeleton shows while workout history fetches
+- Updated app/(tabs)/tasks.tsx:
+  - Added SkeletonTaskItem for loading state (5 skeleton items)
+  - Added EmptyTasks component for empty state
+  - Removed Card wrapper from empty state for cleaner look
+- Updated maestro/us-020-loading-empty-states.yaml:
+  - Comprehensive E2E test covering all screens
+  - Tests health cards, workout history, task list
+  - Verifies empty states and skeleton testIDs
+- All checks pass: npm run check (format, lint, types, tests, audit)

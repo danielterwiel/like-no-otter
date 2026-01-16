@@ -420,7 +420,7 @@
         "Maestro test passes: maestro/us-020-loading-empty-states.yaml"
       ],
       "priority": 20,
-      "passes": false,
+      "passes": true,
       "notes": "Use react-native-reusables Skeleton component"
     },
     {

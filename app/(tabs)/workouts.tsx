@@ -5,6 +5,8 @@ import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SkeletonWorkoutCard } from "@/components/ui/skeleton";
+import { EmptyWorkouts } from "@/components/ui/empty-state";
 import { WorkoutCard, MuscleFrequencyChart } from "@/components/workout";
 import { getExerciseCount } from "@/lib/db";
 import {
@@ -104,18 +106,15 @@ export default function WorkoutsScreen() {
     </>
   );
 
-  const EmptyState = (
-    <Card>
-      <CardContent>
-        <View className="items-center py-8">
-          <Ionicons name="fitness-outline" size={48} color="#ccc" />
-          <Text className="mt-4 text-center text-muted-foreground">
-            No workouts yet.{"\n"}Start your first workout above!
-          </Text>
-        </View>
-      </CardContent>
-    </Card>
+  const LoadingSkeleton = (
+    <View testID="workout-history-loading">
+      <SkeletonWorkoutCard />
+      <SkeletonWorkoutCard />
+      <SkeletonWorkoutCard />
+    </View>
   );
+
+  const EmptyStateComponent = <EmptyWorkouts testID="workout-empty-state" />;
 
   return (
     <View testID="screen-workouts" className="flex-1 bg-background">
@@ -124,7 +123,7 @@ export default function WorkoutsScreen() {
         data={workouts}
         renderItem={renderWorkoutCard}
         ListHeaderComponent={ListHeader}
-        ListEmptyComponent={!isLoading ? EmptyState : null}
+        ListEmptyComponent={isLoading ? LoadingSkeleton : EmptyStateComponent}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         refreshControl={
           !IS_WEB ? (

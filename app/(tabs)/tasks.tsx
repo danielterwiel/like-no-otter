@@ -4,7 +4,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
-import { Card, CardContent } from "@/components/ui/card";
+import { SkeletonTaskItem } from "@/components/ui/skeleton";
+import { EmptyTasks } from "@/components/ui/empty-state";
 import { SwipeableTaskItem } from "@/components/tasks";
 import {
   getTasksBySection,
@@ -161,22 +162,16 @@ export default function TasksScreen() {
 
         {/* Task List */}
         {isLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-muted-foreground">Loading tasks...</Text>
+          <View testID="task-loading-skeleton" className="flex-1 pt-4">
+            <SkeletonTaskItem />
+            <SkeletonTaskItem />
+            <SkeletonTaskItem />
+            <SkeletonTaskItem />
+            <SkeletonTaskItem />
           </View>
         ) : totalTasks === 0 ? (
           <View className="flex-1 items-center justify-center p-4">
-            <Card className="w-full max-w-sm">
-              <CardContent className="items-center p-6">
-                <Ionicons name="checkbox-outline" size={48} color="#888" />
-                <Text className="mt-4 text-center text-lg font-semibold text-foreground">
-                  No tasks yet
-                </Text>
-                <Text className="mt-2 text-center text-muted-foreground">
-                  Tap the Add button to create your first task
-                </Text>
-              </CardContent>
-            </Card>
+            <EmptyTasks testID="task-empty-state" />
           </View>
         ) : (
           <SectionList

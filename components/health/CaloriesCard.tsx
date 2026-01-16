@@ -1,8 +1,9 @@
 import * as React from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { CaloriesData } from "@/lib/health";
 
 interface CaloriesCardProps {
@@ -25,8 +26,9 @@ export function CaloriesCard({ data, isLoading }: CaloriesCardProps) {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <View className="items-center justify-center py-2">
-            <ActivityIndicator size="small" />
+          <View testID="calories-skeleton">
+            <Skeleton width="50%" height={28} className="mb-2" />
+            <Skeleton width="60%" height={14} />
           </View>
         ) : data ? (
           <View>

@@ -1,8 +1,9 @@
 import * as React from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { HeartRateData } from "@/lib/health";
 
 interface RHRCardProps {
@@ -21,8 +22,9 @@ export function RHRCard({ data, isLoading }: RHRCardProps) {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <View className="items-center justify-center py-2">
-            <ActivityIndicator size="small" />
+          <View testID="rhr-skeleton">
+            <Skeleton width="40%" height={28} className="mb-2" />
+            <Skeleton width="30%" height={14} />
           </View>
         ) : data ? (
           <View>

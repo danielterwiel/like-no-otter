@@ -1,8 +1,9 @@
 import * as React from "react";
-import { View, ActivityIndicator, Platform } from "react-native";
+import { View, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { MuscleFrequencyData, MuscleFrequencyPoint } from "@/lib/db/queries/workouts";
 
 // Victory Native module references (loaded dynamically on native)
@@ -92,8 +93,20 @@ export function MuscleFrequencyChart({ data, isLoading }: MuscleFrequencyChartPr
       </CardHeader>
       <CardContent>
         {isLoading || !chartModulesLoaded ? (
-          <View testID="muscle-frequency-loading" className="h-48 items-center justify-center">
-            <ActivityIndicator size="small" />
+          <View testID="muscle-frequency-loading" className="h-48 justify-end gap-2 pb-4">
+            <View className="flex-row items-end justify-around">
+              <Skeleton width={20} height={80} />
+              <Skeleton width={20} height={120} />
+              <Skeleton width={20} height={60} />
+              <Skeleton width={20} height={100} />
+              <Skeleton width={20} height={40} />
+              <Skeleton width={20} height={90} />
+              <Skeleton width={20} height={70} />
+              <Skeleton width={20} height={50} />
+              <Skeleton width={20} height={110} />
+              <Skeleton width={20} height={30} />
+            </View>
+            <Skeleton width="100%" height={14} className="mt-2" />
           </View>
         ) : !hasData ? (
           <View testID="muscle-frequency-empty" className="h-48 items-center justify-center">

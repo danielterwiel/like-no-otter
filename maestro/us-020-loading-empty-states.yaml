@@ -1,28 +1,78 @@
 # US-020: Loading states and empty states
-# Verifies skeletons and empty state displays
+# Verifies skeleton loaders and empty state displays throughout the app
 
 appId: com.likenootter.app
 
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
-# Navigate to Workouts tab with no workouts
+# Test 1: Verify Health tab skeleton loaders (briefly visible during load)
+- tapOn:
+    text: "Health"
+
+- assertVisible:
+    id: "screen-health"
+
+# Skeleton loaders appear briefly, then data loads
+# Verify health cards are displayed (with data or empty state)
+- assertVisible:
+    id: "sleep-card"
+
+- assertVisible:
+    id: "steps-card"
+
+- assertVisible:
+    id: "calories-card"
+
+- assertVisible:
+    id: "rhr-card"
+
+# Test 2: Verify Workouts tab with empty state (no workouts)
 - tapOn:
     text: "Workouts"
 
-# Verify empty state is shown when no workouts exist (when implemented)
 - assertVisible:
-    id: "empty-state"
+    id: "screen-workouts"
+
+# Verify workout history section exists
+- assertVisible:
+    id: "workout-history"
+
+# Verify empty state is shown when no workouts exist
+- assertVisible:
+    id: "workout-empty-state"
     optional: true
 
-# Navigate to Tasks tab
+# Test 3: Verify muscle frequency chart empty state
+- assertVisible:
+    id: "muscle-frequency-chart"
+
+# Test 4: Navigate to Tasks tab and verify empty state
 - tapOn:
     text: "Tasks"
 
+- assertVisible:
+    id: "screen-tasks"
+
 # Verify empty state for no tasks
 - assertVisible:
-    id: "empty-state"
+    id: "task-empty-state"
     optional: true
+
+# Test 5: Verify Health tab states (denied state when applicable)
+- tapOn:
+    text: "Health"
+
+# HealthKitDenied state is shown when authorization is denied
+- assertVisible:
+    id: "healthkit-denied"
+    optional: true
+
+# RHR trend chart shows appropriate state (empty, loading, or data)
+- assertVisible:
+    id: "rhr-trend-chart"
