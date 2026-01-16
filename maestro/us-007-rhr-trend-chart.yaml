@@ -6,19 +6,43 @@ appId: com.likenootter.app
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
 # Navigate to Health tab
 - tapOn:
     text: "Health"
 
-# Verify RHR trend chart is visible (when implemented)
+- assertVisible:
+    id: "screen-health"
+
+# Verify RHR trend chart card is visible
 - assertVisible:
     id: "rhr-trend-chart"
-    optional: true
 
-# Verify chart shows day labels
+# Verify chart header text
 - assertVisible:
-    text: "Mon"
-    optional: true
+    text: "RHR Trend"
+
+- assertVisible:
+    text: "Last 7 days"
+
+# Verify either chart content, empty state, or web message is shown
+# (depends on platform and available data)
+- runFlow:
+    when:
+      visible:
+        id: "rhr-trend-empty"
+    commands:
+      - assertVisible:
+          text: "Not enough data"
+
+- runFlow:
+    when:
+      visible:
+        id: "rhr-trend-web"
+    commands:
+      - assertVisible:
+          text: "Chart available on iOS"

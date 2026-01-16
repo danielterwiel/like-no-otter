@@ -18,6 +18,16 @@ export interface HeartRateData {
   restingHeartRate: number;
 }
 
+export interface RHRTrendPoint {
+  date: Date;
+  value: number;
+  dayLabel: string;
+}
+
+export interface RHRTrendData {
+  points: RHRTrendPoint[];
+}
+
 export interface HealthData {
   sleep: SleepData | null;
   steps: StepsData | null;
@@ -214,4 +224,73 @@ export async function fetchTodayHealthData(): Promise<HealthData> {
   ]);
 
   return { sleep, steps, calories, heartRate };
+}
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+export async function fetchRHRTrendData(): Promise<RHRTrendData | null> {
+  if (Platform.OS !== "ios") {
+    return null;
+  }
+
+  try {
+    const healthKit = await getHealthKit();
+    if (!healthKit) return null;
+
+    // Get data for last 7 days
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+
+    const options = {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+
+    return new Promise((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      healthKit.getRestingHeartRate(options, (err: Error | null, results: any[]) => {
+        if (err || !results || results.length === 0) {
+          resolve({ points: [] });
+          return;
+        }
+
+        // Group results by date and take the average for each day
+        const dailyData = new Map<string, { total: number; count: number; date: Date }>();
+
+        for (const sample of results) {
+          const sampleDate = new Date(sample.startDate);
+          const dateKey = sampleDate.toISOString().split("T")[0];
+
+          const existing = dailyData.get(dateKey);
+          if (existing) {
+            existing.total += sample.value;
+            existing.count += 1;
+          } else {
+            dailyData.set(dateKey, { total: sample.value, count: 1, date: sampleDate });
+          }
+        }
+
+        // Convert to array of points
+        const points: RHRTrendPoint[] = [];
+        for (const [, data] of dailyData) {
+          const avgValue = Math.round(data.total / data.count);
+          points.push({
+            date: data.date,
+            value: avgValue,
+            dayLabel: DAY_LABELS[data.date.getDay()],
+          });
+        }
+
+        // Sort by date ascending
+        points.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+        resolve({ points });
+      });
+    });
+  } catch {
+    return null;
+  }
 }

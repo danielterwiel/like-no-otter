@@ -3,26 +3,38 @@ import { View, ScrollView, Platform } from "react-native";
 import { Text } from "@/components/ui/text";
 import { useHealthKit } from "@/providers/HealthKitProvider";
 import { HealthKitDenied } from "@/components/HealthKitDenied";
-import { SleepCard, StepsCard, CaloriesCard, RHRCard } from "@/components/health";
-import { fetchTodayHealthData, type HealthData } from "@/lib/health";
+import { SleepCard, StepsCard, CaloriesCard, RHRCard, RHRTrendChart } from "@/components/health";
+import {
+  fetchTodayHealthData,
+  fetchRHRTrendData,
+  type HealthData,
+  type RHRTrendData,
+} from "@/lib/health";
 
 export default function HealthScreen() {
   const { authStatus, isAvailable } = useHealthKit();
   const [healthData, setHealthData] = React.useState<HealthData | null>(null);
+  const [rhrTrendData, setRhrTrendData] = React.useState<RHRTrendData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isTrendLoading, setIsTrendLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function loadHealthData() {
       // Only fetch on iOS when authorized
       if (Platform.OS === "ios" && authStatus === "authorized") {
         setIsLoading(true);
-        const data = await fetchTodayHealthData();
+        setIsTrendLoading(true);
+        const [data, trendData] = await Promise.all([fetchTodayHealthData(), fetchRHRTrendData()]);
         setHealthData(data);
+        setRhrTrendData(trendData);
         setIsLoading(false);
+        setIsTrendLoading(false);
       } else {
         // On web/non-iOS, set empty state immediately
         setIsLoading(false);
+        setIsTrendLoading(false);
         setHealthData({ sleep: null, steps: null, calories: null, heartRate: null });
+        setRhrTrendData({ points: [] });
       }
     }
     loadHealthData();
@@ -70,6 +82,8 @@ export default function HealthScreen() {
           <RHRCard data={healthData?.heartRate ?? null} isLoading={isLoading} />
         </View>
       </View>
+
+      <RHRTrendChart data={rhrTrendData} isLoading={isTrendLoading} />
     </ScrollView>
   );
 }

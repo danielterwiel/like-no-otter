@@ -253,3 +253,33 @@ Completed:
   - Tests verify all 4 cards are visible after navigating to Health tab
 - Updated scripts/e2e-runner.ts to include US-006 in completed tests
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-007 - RHR trend chart
+
+Completed:
+- Installed victory-native v41.20.2 and @shopify/react-native-skia v2.2.12 for charting
+- Created fetchRHRTrendData() in lib/health/queries.ts:
+  - Fetches last 7 days of resting heart rate from HealthKit
+  - Groups results by date and calculates daily average
+  - Returns array of RHRTrendPoint with date, value, and dayLabel (Mon, Tue, etc.)
+- Added RHRTrendData and RHRTrendPoint types to lib/health/index.ts
+- Created components/health/RHRTrendChart.tsx:
+  - Victory Native CartesianChart with Line component
+  - X-axis shows day labels (Mon, Tue, Wed...)
+  - Y-axis auto-scaled to data range with padding
+  - Circle markers at each data point
+  - Touch interaction via useChartPressState shows selected value in header
+  - Loading state with ActivityIndicator while data fetches
+  - Empty state when less than 3 days of data available
+  - Web fallback message (chart only works on iOS)
+  - Dynamic module loading to avoid bundling native modules on web
+- Updated components/health/index.ts to export RHRTrendChart
+- Updated app/(tabs)/health.tsx:
+  - Added RHRTrendChart below health metrics cards
+  - Fetches RHR trend data in parallel with today's health data
+  - Separate loading state for trend chart
+- Updated maestro/us-007-rhr-trend-chart.yaml for E2E testing:
+  - Verifies RHR trend chart card is visible
+  - Verifies "RHR Trend" and "Last 7 days" text
+  - Handles empty state and web fallback scenarios
+- All checks pass: npm run check (format, lint, types, tests, audit)

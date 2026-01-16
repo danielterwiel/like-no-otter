@@ -190,7 +190,7 @@
         "Maestro test passes: maestro/us-007-rhr-trend-chart.yaml"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "Use Victory Native for charting"
     },
     {
