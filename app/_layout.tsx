@@ -32,6 +32,14 @@ function AppContent() {
     <>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="workout/setup"
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "Start Workout",
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
       <PortalHost />

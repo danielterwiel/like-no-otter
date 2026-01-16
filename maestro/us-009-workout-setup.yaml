@@ -6,36 +6,69 @@ appId: com.likenootter.app
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 30000
 
 # Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Open workout setup modal (when implemented)
+# Verify start workout button is visible
+- assertVisible:
+    id: "start-workout-button"
+
+# Open workout setup modal
 - tapOn:
     id: "start-workout-button"
-    optional: true
+
+# Verify we're on the workout setup screen
+- assertVisible:
+    id: "screen-workout-setup"
 
 # Verify search input is visible
 - assertVisible:
     id: "exercise-search-input"
-    optional: true
 
 # Search for an exercise
 - tapOn:
     id: "exercise-search-input"
-    optional: true
 
 - inputText: "squat"
 
-# Select an exercise to add to queue
+# Wait for search results
+- extendedWaitUntil:
+    visible:
+      id: "exercise-list"
+    timeout: 5000
+
+# Tap on Barbell Squat to add to queue
 - tapOn:
-    text: "Squat"
-    optional: true
+    text: "Barbell Squat"
 
 # Verify exercise appears in queue
 - assertVisible:
     id: "workout-queue"
-    optional: true
+
+# Verify the queue item exists
+- assertVisible:
+    text: "Workout Queue (1)"
+
+# Search and add another exercise
+- clearText:
+    id: "exercise-search-input"
+
+- inputText: "bench"
+
+# Tap on Barbell Bench Press
+- tapOn:
+    text: "Barbell Bench Press"
+
+# Verify queue count increased
+- assertVisible:
+    text: "Workout Queue (2)"
+
+# Verify Start Workout button is now active (check by tapping it)
+- tapOn:
+    id: "start-workout-button"

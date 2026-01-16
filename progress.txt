@@ -326,3 +326,31 @@ Completed:
 - Updated vitest.config.ts with react-native alias for testing
 - Updated maestro/us-008-healthkit-sync.yaml for E2E testing
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-009 - Workout setup screen
+
+Completed:
+- Installed @shopify/flash-list v2 for performant exercise lists
+- Created app/workout/setup.tsx modal screen with full workout setup functionality:
+  - Search input with debounced filtering by exercise name
+  - SectionList grouped by category (barbell, dumbbell, machine, cable, bodyweight)
+  - Tapping exercise adds it to workout queue with visual checkmark indicator
+  - Selected exercises shown in FlashList queue with reorder controls
+  - Up/down chevron buttons to reorder exercises in queue
+  - Remove button (X) to delete exercises from queue
+  - Start Workout button (disabled until exercises selected)
+  - Web platform fallback message
+- Updated app/_layout.tsx:
+  - Added workout/setup route with modal presentation
+  - Configured header with "Start Workout" title
+- Updated app/(tabs)/workouts.tsx:
+  - Added prominent "Start Workout" button that navigates to modal
+  - Added Exercise Library card showing exercise count
+  - Added Recent Workouts placeholder card with empty state
+  - Removed inline search functionality (moved to modal)
+- Updated maestro/us-009-workout-setup.yaml for E2E testing:
+  - Tests navigation to workout setup modal
+  - Tests exercise search functionality
+  - Tests adding exercises to queue
+  - Tests queue count display
+- All checks pass: npm run check (format, lint, types, tests, audit)

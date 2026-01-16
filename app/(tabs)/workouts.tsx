@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { View, TextInput, FlatList, Platform } from "react-native";
+import { View, TouchableOpacity, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
-import { searchExercises, getExerciseCount, type ExerciseRecord } from "@/lib/db";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getExerciseCount } from "@/lib/db";
 
 export default function WorkoutsScreen() {
+  const router = useRouter();
   const [exerciseCount, setExerciseCount] = useState<number>(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<ExerciseRecord[]>([]);
 
   useEffect(() => {
     async function loadCount() {
@@ -16,56 +18,52 @@ export default function WorkoutsScreen() {
     loadCount();
   }, []);
 
-  useEffect(() => {
-    async function runSearch() {
-      if (searchQuery.length > 0) {
-        const results = await searchExercises(searchQuery);
-        setSearchResults(results);
-      } else {
-        setSearchResults([]);
-      }
-    }
-    runSearch();
-  }, [searchQuery]);
-
   return (
-    <View testID="screen-workouts" className="flex-1 bg-background p-4">
-      <Text className="text-xl font-bold text-primary">Workouts</Text>
-      <Text testID="exercise-count" className="mt-2 text-muted-foreground">
-        {exerciseCount} exercises available
-      </Text>
+    <ScrollView
+      testID="screen-workouts"
+      className="flex-1 bg-background"
+      contentContainerStyle={{ padding: 16 }}
+    >
+      {/* Start Workout Button */}
+      <TouchableOpacity
+        testID="start-workout-button"
+        onPress={() => router.push("/workout/setup")}
+        className="mb-6 flex-row items-center justify-center rounded-xl bg-primary py-4"
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add-circle" size={24} color="#fff" />
+        <Text className="ml-2 text-lg font-semibold text-primary-foreground">Start Workout</Text>
+      </TouchableOpacity>
 
-      <TextInput
-        testID="exercise-search-input"
-        className="mt-4 rounded-lg border border-input bg-background px-4 py-3 text-foreground"
-        placeholder="Search exercises..."
-        placeholderTextColor="#888"
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
+      {/* Exercise Count Card */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Exercise Library</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <View className="flex-row items-center">
+            <Ionicons name="barbell-outline" size={24} color="#888" />
+            <Text testID="exercise-count" className="ml-2 text-muted-foreground">
+              {exerciseCount} exercises available
+            </Text>
+          </View>
+        </CardContent>
+      </Card>
 
-      {searchResults.length > 0 && (
-        <FlatList
-          testID="exercise-search-results"
-          className="mt-4"
-          data={searchResults}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => (
-            <View testID={`exercise-item-${item.id}`} className="border-b border-border py-3">
-              <Text className="font-medium text-foreground">{item.name}</Text>
-              <Text className="text-sm text-muted-foreground">
-                {item.category} | {item.primaryMuscles.join(", ")}
-              </Text>
-            </View>
-          )}
-        />
-      )}
-
-      {searchQuery.length > 0 && searchResults.length === 0 && Platform.OS !== "web" && (
-        <Text className="mt-4 text-muted-foreground">No exercises found</Text>
-      )}
-    </View>
+      {/* Workout History Placeholder */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Workouts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <View className="items-center py-8">
+            <Ionicons name="fitness-outline" size={48} color="#ccc" />
+            <Text className="mt-4 text-center text-muted-foreground">
+              No workouts yet.{"\n"}Start your first workout above!
+            </Text>
+          </View>
+        </CardContent>
+      </Card>
+    </ScrollView>
   );
 }

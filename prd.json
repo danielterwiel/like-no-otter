@@ -215,7 +215,7 @@
       "title": "Workout setup screen",
       "description": "Screen to search and select exercises before starting workout",
       "acceptanceCriteria": [
-        "app/(modals)/workout-setup.tsx modal screen",
+        "app/workout/setup.tsx modal screen",
         "Search input filters exercises by name",
         "Exercise list grouped by category (barbell, dumbbell, etc.)",
         "Tapping exercise adds it to workout queue",
@@ -226,7 +226,7 @@
         "Maestro test passes: maestro/us-009-workout-setup.yaml"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "ExerciseSearch component with debounced search"
     },
     {
