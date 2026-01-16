@@ -319,3 +319,55 @@ export async function getLatestWhoopSleep(): Promise<WhoopSleepData | null> {
     respiratoryRate: record.respiratoryRate,
   };
 }
+
+export interface RecoveryTrendPoint {
+  date: string;
+  value: number;
+  dayLabel: string;
+}
+
+export interface RecoveryTrendData {
+  points: RecoveryTrendPoint[];
+}
+
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+export async function getRecoveryTrendData(days: number = 7): Promise<RecoveryTrendData> {
+  if (!IS_NATIVE) {
+    return { points: [] };
+  }
+
+  const { drizzle } = await import("drizzle-orm/expo-sqlite");
+  const SQLite = await import("expo-sqlite");
+  const { whoopRecovery } = await import("../schema/whoop");
+  const { desc, gte } = await import("drizzle-orm");
+
+  const expo = SQLite.openDatabaseSync("likenootter.db");
+  const db = drizzle(expo);
+
+  // Calculate date for N days ago
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  const startDateStr = startDate.toISOString().split("T")[0];
+
+  const results = await db
+    .select()
+    .from(whoopRecovery)
+    .where(gte(whoopRecovery.date, startDateStr))
+    .orderBy(desc(whoopRecovery.date))
+    .limit(days);
+
+  const points: RecoveryTrendPoint[] = results
+    .filter((r) => r.recoveryScore !== null)
+    .map((record) => {
+      const date = new Date(record.date);
+      return {
+        date: record.date,
+        value: record.recoveryScore!,
+        dayLabel: DAY_LABELS[date.getDay()],
+      };
+    })
+    .reverse(); // Oldest first for chart
+
+  return { points };
+}

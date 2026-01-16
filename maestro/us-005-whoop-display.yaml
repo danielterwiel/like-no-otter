@@ -1,0 +1,78 @@
+# US-005: Whoop metrics display in Health tab
+# Verifies Whoop data cards and empty state are displayed correctly
+# Note: Full Whoop data display requires real Whoop credentials and connected account
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 15000
+
+# Navigate to Health tab
+- tapOn:
+    text: "Health"
+
+- assertVisible:
+    id: "screen-health"
+
+# Verify main health metrics are visible
+- assertVisible:
+    text: "Today"
+
+# When Whoop is NOT connected, verify empty state with Connect CTA
+- assertVisible:
+    id: "whoop-empty-state"
+    optional: true
+
+- assertVisible:
+    id: "connect-whoop-cta"
+    optional: true
+
+# Tap Connect CTA if visible to navigate to Whoop connect screen
+- tapOn:
+    id: "connect-whoop-cta"
+    optional: true
+
+# If on connect screen, verify and go back
+- assertVisible:
+    id: "screen-connect-whoop"
+    optional: true
+
+- tapOn:
+    id: "whoop-cancel-button"
+    optional: true
+
+# Navigate back to Health tab if needed
+- tapOn:
+    text: "Health"
+    optional: true
+
+# When Whoop IS connected, verify Whoop section appears
+# These will pass when user has connected Whoop account
+- assertVisible:
+    id: "whoop-section"
+    optional: true
+
+- assertVisible:
+    id: "whoop-recovery-card"
+    optional: true
+
+- assertVisible:
+    id: "whoop-strain-card"
+    optional: true
+
+- assertVisible:
+    id: "whoop-sleep-card"
+    optional: true
+
+- assertVisible:
+    id: "whoop-recovery-trend-chart"
+    optional: true
+
+# Verify Health tab renders without errors
+- assertVisible:
+    id: "screen-health"

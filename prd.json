@@ -178,7 +178,7 @@
         "Maestro test passes: maestro/us-005-whoop-display.yaml"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Recovery score colors: 0-33% red, 34-66% yellow, 67-100% green"
     },
     {

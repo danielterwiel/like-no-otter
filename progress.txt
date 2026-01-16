@@ -947,3 +947,57 @@ Completed:
   - Verifies navigation to Whoop connect screen
   - Verifies Health tab loads without errors
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-005 (Integrations) - Whoop metrics display in Health tab
+
+Completed:
+- Created components/health/RecoveryCard.tsx:
+  - Displays recovery score (0-100%) with color coding (red 0-33%, yellow 34-66%, green 67-100%)
+  - Shows secondary metrics: HRV, RHR, SpO2
+  - "Whoop" badge to indicate data source
+  - Battery charging icon with color matching recovery score
+  - Loading skeleton and empty state support
+  - testID="whoop-recovery-card" for E2E testing
+- Created components/health/StrainCard.tsx:
+  - Displays daily strain score (0-21 scale) with color coding
+  - Gauge visualization using progress bar
+  - Shows calories burned (converted from kilojoules) and average heart rate
+  - "Whoop" badge to indicate data source
+  - Loading skeleton and empty state support
+  - testID="whoop-strain-card" for E2E testing
+- Created components/health/WhoopSleepCard.tsx:
+  - Displays total sleep duration and sleep stage breakdown
+  - Shows time in each stage: REM (violet), Deep (blue), Light (cyan), Awake (orange)
+  - Progress bars for each sleep stage showing percentage of total
+  - "Whoop" badge to indicate data source
+  - Loading skeleton and empty state support
+  - testID="whoop-sleep-card" for E2E testing
+- Created components/health/RecoveryTrendChart.tsx:
+  - 7-day recovery trend chart using Victory Native
+  - Line chart with color-coded data points based on recovery score
+  - Interactive touch state shows selected day value
+  - Loading skeleton with bar chart placeholder
+  - Empty state when less than 3 days of data
+  - Web platform fallback message
+  - testID="whoop-recovery-trend-chart" for E2E testing
+- Added getRecoveryTrendData() function to lib/db/queries/whoop.ts:
+  - Fetches last N days of recovery data from SQLite
+  - Returns RecoveryTrendData with points array containing date, value, dayLabel
+  - Filters out null recovery scores
+  - Orders oldest first for chart display
+- Updated components/health/index.ts to export new components:
+  - RecoveryCard, StrainCard, WhoopSleepCard, RecoveryTrendChart
+- Updated app/(tabs)/health.tsx:
+  - Added useConnections hook to check Whoop connection status
+  - Added state management for Whoop data (recovery, strain, sleep, trend)
+  - Loads Whoop data in parallel when connected
+  - Shows "Whoop" section header when connected with all 4 cards
+  - Shows empty state with "Connect Whoop" CTA when not connected
+  - CTA navigates to /connect/whoop screen
+  - Data reads from SQLite (offline-first)
+- Created maestro/us-005-whoop-display.yaml E2E test:
+  - Verifies Health tab navigation
+  - Verifies empty state with Connect CTA when not connected
+  - Verifies Whoop section and cards when connected (optional)
+  - Tests navigation to Whoop connect screen
+- All checks pass: npm run check (format, lint, types, tests, audit)

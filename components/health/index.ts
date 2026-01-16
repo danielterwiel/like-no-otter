@@ -3,3 +3,7 @@ export { StepsCard } from "./StepsCard";
 export { CaloriesCard } from "./CaloriesCard";
 export { RHRCard } from "./RHRCard";
 export { RHRTrendChart } from "./RHRTrendChart";
+export { RecoveryCard } from "./RecoveryCard";
+export { StrainCard } from "./StrainCard";
+export { WhoopSleepCard } from "./WhoopSleepCard";
+export { RecoveryTrendChart } from "./RecoveryTrendChart";
