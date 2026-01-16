@@ -352,6 +352,14 @@ export async function saveWorkout(input: SaveWorkoutInput): Promise<SaveWorkoutR
 
         // Insert sets for this exercise
         for (const set of exerciseState.sets) {
+          // Handle completedAt being either a Date object or ISO string (from JSON serialization)
+          let completedAtTimestamp: number | null = null;
+          if (set.completedAt) {
+            const date =
+              set.completedAt instanceof Date ? set.completedAt : new Date(set.completedAt);
+            completedAtTimestamp = Math.floor(date.getTime() / 1000);
+          }
+
           db.runSync(
             `INSERT INTO workout_sets (workout_exercise_id, set_number, weight, reps, is_warmup, completed_at)
              VALUES (?, ?, ?, ?, ?, ?)`,
@@ -360,7 +368,7 @@ export async function saveWorkout(input: SaveWorkoutInput): Promise<SaveWorkoutR
             set.weight,
             set.reps,
             set.isWarmup ? 1 : 0,
-            set.completedAt ? Math.floor(set.completedAt.getTime() / 1000) : null,
+            completedAtTimestamp,
           );
         }
       }
@@ -611,4 +619,205 @@ export async function getMuscleFrequencyData(): Promise<MuscleFrequencyData> {
     console.error("Failed to fetch muscle frequency data:", error);
     return { points: [], totalSets: 0, hasData: false };
   }
+}
+
+/**
+ * Strong import types and functions
+ */
+export interface StrongImportExercise {
+  name: string;
+  sets: {
+    setNumber: number;
+    weight: number | null;
+    reps: number | null;
+    isWarmup: boolean;
+  }[];
+}
+
+export interface StrongImportWorkout {
+  date: Date;
+  name: string;
+  durationSeconds: number;
+  exercises: StrongImportExercise[];
+  notes: string | null;
+}
+
+export interface StrongImportResult {
+  success: boolean;
+  importedCount: number;
+  skippedCount: number;
+  error?: string;
+}
+
+/**
+ * Find or create an exercise by name for Strong import
+ * If not found, creates a custom exercise with generic muscle group
+ */
+function findOrCreateExercise(
+  db: ReturnType<typeof import("expo-sqlite").openDatabaseSync>,
+  exerciseName: string,
+): number {
+  // Try exact match first
+  const exact = db.getFirstSync<{ id: number }>(
+    `SELECT id FROM exercises WHERE LOWER(name) = LOWER(?)`,
+    exerciseName,
+  );
+  if (exact) return exact.id;
+
+  // Try fuzzy match (contains)
+  const fuzzy = db.getFirstSync<{ id: number }>(
+    `SELECT id FROM exercises WHERE LOWER(name) LIKE LOWER(?)`,
+    `%${exerciseName}%`,
+  );
+  if (fuzzy) return fuzzy.id;
+
+  // Create a custom exercise
+  db.runSync(
+    `INSERT INTO exercises (name, category, primary_muscles, secondary_muscles, is_custom)
+     VALUES (?, ?, ?, ?, ?)`,
+    exerciseName,
+    "bodyweight", // Default category
+    "chest", // Default primary muscle (placeholder)
+    null,
+    1, // is_custom = true
+  );
+
+  const newExercise = db.getFirstSync<{ id: number }>("SELECT last_insert_rowid() as id");
+  if (!newExercise) throw new Error(`Failed to create exercise: ${exerciseName}`);
+
+  return newExercise.id;
+}
+
+/**
+ * Calculate total volume for Strong import workout
+ */
+function calculateStrongVolume(exercises: StrongImportExercise[]): number {
+  return exercises.reduce((total, ex) => {
+    return (
+      total +
+      ex.sets.reduce((setTotal, set) => {
+        if (set.isWarmup) return setTotal;
+        const weight = set.weight ?? 0;
+        const reps = set.reps ?? 0;
+        return setTotal + weight * reps;
+      }, 0)
+    );
+  }, 0);
+}
+
+/**
+ * Import a single workout from Strong CSV
+ */
+export async function importStrongWorkout(
+  workout: StrongImportWorkout,
+): Promise<{ success: boolean; workoutId?: number; error?: string }> {
+  if (IS_WEB) {
+    return { success: false, error: "Database not available on web" };
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    const totalVolume = calculateStrongVolume(workout.exercises);
+    const now = new Date();
+    const endTime = new Date(workout.date.getTime() + workout.durationSeconds * 1000);
+
+    let workoutId: number | undefined;
+
+    db.withTransactionSync(() => {
+      // Insert workout
+      db.runSync(
+        `INSERT INTO workouts (start_time, end_time, duration_seconds, total_volume, notes, created_at, synced_to_healthkit)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        Math.floor(workout.date.getTime() / 1000),
+        Math.floor(endTime.getTime() / 1000),
+        workout.durationSeconds,
+        totalVolume,
+        workout.notes,
+        Math.floor(now.getTime() / 1000),
+        0,
+      );
+
+      const result = db.getFirstSync<{ id: number }>("SELECT last_insert_rowid() as id");
+      workoutId = result?.id;
+
+      if (!workoutId) {
+        throw new Error("Failed to get workout ID");
+      }
+
+      // Insert exercises and sets
+      for (let orderIndex = 0; orderIndex < workout.exercises.length; orderIndex++) {
+        const exercise = workout.exercises[orderIndex];
+
+        // Find or create exercise
+        const exerciseId = findOrCreateExercise(db, exercise.name);
+
+        // Insert workout_exercise
+        db.runSync(
+          `INSERT INTO workout_exercises (workout_id, exercise_id, order_index)
+           VALUES (?, ?, ?)`,
+          workoutId,
+          exerciseId,
+          orderIndex,
+        );
+
+        const exerciseResult = db.getFirstSync<{ id: number }>("SELECT last_insert_rowid() as id");
+        const workoutExerciseId = exerciseResult?.id;
+
+        if (!workoutExerciseId) {
+          throw new Error("Failed to get workout exercise ID");
+        }
+
+        // Insert sets
+        for (const set of exercise.sets) {
+          db.runSync(
+            `INSERT INTO workout_sets (workout_exercise_id, set_number, weight, reps, is_warmup, completed_at)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            workoutExerciseId,
+            set.setNumber,
+            set.weight,
+            set.reps,
+            set.isWarmup ? 1 : 0,
+            Math.floor(workout.date.getTime() / 1000), // Use workout date as completed_at
+          );
+        }
+      }
+    });
+
+    return { success: true, workoutId };
+  } catch (error) {
+    console.error("Failed to import Strong workout:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
+ * Import multiple workouts from Strong CSV
+ */
+export async function importStrongWorkouts(
+  workouts: StrongImportWorkout[],
+): Promise<StrongImportResult> {
+  let importedCount = 0;
+  let skippedCount = 0;
+
+  for (const workout of workouts) {
+    const result = await importStrongWorkout(workout);
+    if (result.success) {
+      importedCount++;
+    } else {
+      skippedCount++;
+      console.warn(`Skipped workout: ${workout.name} on ${workout.date}`, result.error);
+    }
+  }
+
+  return {
+    success: importedCount > 0,
+    importedCount,
+    skippedCount,
+    error: skippedCount > 0 ? `${skippedCount} workout(s) failed to import` : undefined,
+  };
 }

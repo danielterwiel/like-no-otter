@@ -270,7 +270,7 @@
         "Maestro test passes: maestro/us-009-strong-import.yaml"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "Strong CSV columns have spaces in names. Parse carefully."
     },
     {

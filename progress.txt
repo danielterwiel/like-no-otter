@@ -1161,3 +1161,58 @@ Completed:
   - Tests More tab TickTick connection card
   - Tests pull-to-refresh
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-009 (Integrations) - Strong CSV import flow
+
+Completed:
+- Installed expo-document-picker for CSV file selection
+- Installed expo-file-system for reading file content
+- Created lib/integrations/strong/parser.ts with CSV parsing:
+  - StrongCSVRow interface matching Strong app export format
+  - ParsedStrongWorkout, ParsedStrongExercise, ParsedStrongSet interfaces
+  - parseDuration(): converts "0h 45m" format to seconds
+  - parseStrongDate(): converts "YYYY-MM-DD HH:MM:SS" to Date
+  - parseCSVLine(): handles quoted fields and escaped characters
+  - parseStrongCSV(): main parser function
+    - Parses header to get column indices
+    - Groups rows by Date + Workout Name into sessions
+    - Returns StrongParseResult with workouts, counts, date range
+- Created lib/integrations/strong/index.ts to export parser module
+- Updated lib/integrations/index.ts to export strong module
+- Updated app/connect/strong.tsx with file picker integration:
+  - Uses DocumentPicker.getDocumentAsync for CSV file selection
+  - Reads file content with FileSystem.readAsStringAsync
+  - Parses CSV and validates format
+  - Shows parsing error state if file is invalid
+  - Navigates to preview screen with parsed workout data
+  - Loading state while reading/parsing file
+- Created app/connect/strong-preview.tsx import preview screen:
+  - Displays summary cards: workout count, exercise count, selected count
+  - Shows date range of workouts in header
+  - Workout list with checkboxes for selection/deselection
+  - Select All / Deselect All toggle button
+  - Each workout shows name, date, exercise count, set count
+  - Import button saves selected workouts to database
+  - Success screen shows import completion with workout count
+  - Import progress state with loading indicator
+  - Cancel button returns to Strong connect screen
+- Added Strong import functions to lib/db/queries/workouts.ts:
+  - StrongImportWorkout, StrongImportExercise interfaces
+  - StrongImportResult interface for batch import results
+  - findOrCreateExercise(): finds existing exercise or creates custom one
+  - calculateStrongVolume(): calculates total volume for workout
+  - importStrongWorkout(): saves single workout to SQLite
+    - Uses transaction for atomic insert
+    - Creates workout, workout_exercises, workout_sets records
+    - Auto-creates custom exercises if not found in database
+  - importStrongWorkouts(): batch imports multiple workouts
+    - Returns success count and skipped count
+- Updated app/_layout.tsx with connect/strong-preview route
+- Created maestro/us-009-strong-import.yaml E2E test:
+  - Verifies navigation to Strong connect screen from More tab
+  - Verifies import instructions are displayed
+  - Verifies CSV Import section and step-by-step instructions
+  - Verifies Select CSV File button
+  - Verifies privacy info about data staying on device
+  - Tests cancel navigation back to More screen
+- All checks pass: npm run check (format, lint, types, tests, audit)

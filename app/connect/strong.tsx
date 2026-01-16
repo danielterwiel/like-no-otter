@@ -1,11 +1,18 @@
-import { View, Platform } from "react-native";
+import { useState } from "react";
+import { View, Platform, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
-import { TouchableOpacity } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
+import { parseStrongCSV, type StrongParseResult } from "@/lib/integrations/strong";
+
+type ScreenState = "initial" | "parsing" | "error";
 
 export default function StrongConnectScreen() {
   const router = useRouter();
+  const [screenState, setScreenState] = useState<ScreenState>("initial");
+  const [error, setError] = useState<string | null>(null);
 
   if (Platform.OS === "web") {
     return (
@@ -17,6 +24,64 @@ export default function StrongConnectScreen() {
       </View>
     );
   }
+
+  const handleSelectFile = async () => {
+    try {
+      setError(null);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "text/csv",
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const file = result.assets[0];
+      if (!file) {
+        setError("No file selected");
+        return;
+      }
+
+      setScreenState("parsing");
+
+      // Read file content
+      const fileContent = await FileSystem.readAsStringAsync(file.uri);
+
+      // Parse CSV
+      const parseResult: StrongParseResult = parseStrongCSV(fileContent);
+
+      if (!parseResult.success) {
+        setScreenState("error");
+        setError(parseResult.error || "Failed to parse CSV file");
+        return;
+      }
+
+      if (parseResult.workouts.length === 0) {
+        setScreenState("error");
+        setError("No workouts found in the CSV file");
+        return;
+      }
+
+      // Navigate to preview screen with parsed data
+      router.push({
+        pathname: "/connect/strong-preview",
+        params: {
+          workouts: JSON.stringify(parseResult.workouts),
+          totalWorkouts: parseResult.totalWorkouts.toString(),
+          totalExercises: parseResult.totalExercises.toString(),
+          dateStart: parseResult.dateRange.start?.toISOString() || "",
+          dateEnd: parseResult.dateRange.end?.toISOString() || "",
+        },
+      });
+
+      setScreenState("initial");
+    } catch (err) {
+      console.error("File selection error:", err);
+      setScreenState("error");
+      setError(err instanceof Error ? err.message : "Failed to select file");
+    }
+  };
 
   return (
     <View testID="screen-connect-strong" className="flex-1 bg-background p-6">
@@ -65,20 +130,39 @@ export default function StrongConnectScreen() {
         </View>
       </View>
 
-      {/* Import Button - Placeholder for US-009 CSV import flow */}
+      {/* Error Display */}
+      {error && (
+        <View className="mb-4 rounded-lg bg-destructive/10 p-4">
+          <View className="flex-row items-center">
+            <Ionicons name="alert-circle" size={20} color="#ef4444" />
+            <Text className="ml-2 flex-1 text-sm text-destructive">{error}</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Import Button */}
       <TouchableOpacity
         testID="strong-import-button"
         className="rounded-lg bg-primary py-4"
-        onPress={() => {
-          // TODO: Implement CSV import in US-009
-          router.back();
-        }}
+        onPress={handleSelectFile}
+        disabled={screenState === "parsing"}
       >
         <View className="flex-row items-center justify-center">
-          <Ionicons name="document-text" size={20} color="#fff" />
-          <Text className="ml-2 text-base font-semibold text-primary-foreground">
-            Select CSV File
-          </Text>
+          {screenState === "parsing" ? (
+            <>
+              <ActivityIndicator color="#fff" size="small" />
+              <Text className="ml-2 text-base font-semibold text-primary-foreground">
+                Reading file...
+              </Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="document-text" size={20} color="#fff" />
+              <Text className="ml-2 text-base font-semibold text-primary-foreground">
+                Select CSV File
+              </Text>
+            </>
+          )}
         </View>
       </TouchableOpacity>
 
@@ -86,6 +170,7 @@ export default function StrongConnectScreen() {
         testID="strong-cancel-button"
         className="mt-3 py-4"
         onPress={() => router.back()}
+        disabled={screenState === "parsing"}
       >
         <Text className="text-center text-base text-muted-foreground">Cancel</Text>
       </TouchableOpacity>

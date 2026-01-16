@@ -1,0 +1,88 @@
+# US-009: Strong CSV import flow
+# Verifies Strong import screen with file picker and CSV instructions
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 15000
+
+# Navigate to More tab
+- tapOn:
+    text: "More"
+
+# Verify More screen is visible
+- assertVisible:
+    id: "screen-more"
+
+# Navigate to Strong connect screen
+- tapOn:
+    id: "connection-card-strong"
+
+# Verify Strong connection screen is visible
+- assertVisible:
+    id: "screen-connect-strong"
+
+- assertVisible:
+    text: "Import from Strong"
+
+# Verify import info is displayed
+- assertVisible:
+    id: "strong-import-info"
+
+- assertVisible:
+    text: "CSV Import"
+
+# Verify import instructions are shown
+- assertVisible:
+    text: "Open Strong app and go to Settings"
+
+- assertVisible:
+    text: "Export Data"
+
+- assertVisible:
+    text: "Save the file and import it here"
+
+# Verify import button is visible
+- assertVisible:
+    id: "strong-import-button"
+
+- assertVisible:
+    text: "Select CSV File"
+
+# Verify cancel button is visible
+- assertVisible:
+    id: "strong-cancel-button"
+
+- assertVisible:
+    text: "Cancel"
+
+# Test cancel navigation
+- tapOn:
+    id: "strong-cancel-button"
+
+# Verify we're back on More screen
+- assertVisible:
+    id: "screen-more"
+
+# Navigate back to verify screen state persists
+- tapOn:
+    id: "connection-card-strong"
+
+- assertVisible:
+    id: "screen-connect-strong"
+
+# Verify privacy info is shown
+- assertVisible:
+    text: "Your workout data stays on your device"
+
+# Go back
+- tapOn:
+    id: "strong-cancel-button"
+
+- assertVisible:
+    id: "screen-more"

@@ -98,6 +98,14 @@ function AppContent() {
             title: "Strong",
           }}
         />
+        <Stack.Screen
+          name="connect/strong-preview"
+          options={{
+            presentation: "modal",
+            headerShown: true,
+            title: "Import Preview",
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
       <PortalHost />
