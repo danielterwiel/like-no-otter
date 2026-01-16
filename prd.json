@@ -315,7 +315,7 @@
         "Maestro test passes: maestro/us-014-workout-history.yaml"
       ],
       "priority": 14,
-      "passes": false,
+      "passes": true,
       "notes": "WorkoutCard component for list items"
     },
     {

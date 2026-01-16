@@ -1,29 +1,60 @@
-import { useEffect, useState } from "react";
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { View, TouchableOpacity, RefreshControl, Platform } from "react-native";
 import { useRouter } from "expo-router";
+import { FlashList } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { WorkoutCard } from "@/components/workout";
 import { getExerciseCount } from "@/lib/db";
+import { getWorkoutHistory, type WorkoutHistoryItem } from "@/lib/db/queries/workouts";
+
+const IS_WEB = Platform.OS === "web";
 
 export default function WorkoutsScreen() {
   const router = useRouter();
   const [exerciseCount, setExerciseCount] = useState<number>(0);
+  const [workouts, setWorkouts] = useState<WorkoutHistoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    async function loadCount() {
-      const count = await getExerciseCount();
-      setExerciseCount(count);
-    }
-    loadCount();
+  const loadData = useCallback(async () => {
+    const [count, history] = await Promise.all([getExerciseCount(), getWorkoutHistory()]);
+    setExerciseCount(count);
+    setWorkouts(history);
+    setIsLoading(false);
   }, []);
 
-  return (
-    <ScrollView
-      testID="screen-workouts"
-      className="flex-1 bg-background"
-      contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-    >
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadData();
+    setIsRefreshing(false);
+  }, [loadData]);
+
+  const handleWorkoutPress = useCallback(
+    (workoutId: number) => {
+      router.push(`/workout/${workoutId}`);
+    },
+    [router],
+  );
+
+  const renderWorkoutCard = useCallback(
+    ({ item, index }: { item: WorkoutHistoryItem; index: number }) => (
+      <WorkoutCard
+        workout={item}
+        onPress={() => handleWorkoutPress(item.id)}
+        testID={index === 0 ? "workout-card" : undefined}
+      />
+    ),
+    [handleWorkoutPress],
+  );
+
+  const ListHeader = (
+    <>
       {/* Start Workout Button */}
       <TouchableOpacity
         testID="start-workout-button"
@@ -50,20 +81,40 @@ export default function WorkoutsScreen() {
         </CardContent>
       </Card>
 
-      {/* Workout History Placeholder */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Workouts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <View className="items-center py-8">
-            <Ionicons name="fitness-outline" size={48} color="#ccc" />
-            <Text className="mt-4 text-center text-muted-foreground">
-              No workouts yet.{"\n"}Start your first workout above!
-            </Text>
-          </View>
-        </CardContent>
-      </Card>
-    </ScrollView>
+      {/* Recent Workouts Header */}
+      <Text className="mb-3 text-lg font-semibold text-foreground">Recent Workouts</Text>
+    </>
+  );
+
+  const EmptyState = (
+    <Card>
+      <CardContent>
+        <View className="items-center py-8">
+          <Ionicons name="fitness-outline" size={48} color="#ccc" />
+          <Text className="mt-4 text-center text-muted-foreground">
+            No workouts yet.{"\n"}Start your first workout above!
+          </Text>
+        </View>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <View testID="screen-workouts" className="flex-1 bg-background">
+      <FlashList
+        testID="workout-history"
+        data={workouts}
+        renderItem={renderWorkoutCard}
+        ListHeaderComponent={ListHeader}
+        ListEmptyComponent={!isLoading ? EmptyState : null}
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        refreshControl={
+          !IS_WEB ? (
+            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          ) : undefined
+        }
+        keyExtractor={(item) => item.id.toString()}
+      />
+    </View>
   );
 }

@@ -501,3 +501,41 @@ Completed:
   - Verifies Muscles Trained and Exercises Completed sections
   - Tests save button returns to workouts tab
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-014 - Workout history list
+
+Completed:
+- Created lib/db/queries/workouts.ts query functions:
+  - getWorkoutHistory(): fetches all workouts sorted by date (newest first)
+  - getWorkoutById(): fetches single workout with full details (exercises and sets)
+  - WorkoutHistoryItem interface with id, startTime, endTime, duration, volume, exerciseCount, muscleGroups
+  - WorkoutDetailItem interface with full exercise and set information
+- Created components/workout/WorkoutCard.tsx:
+  - Displays workout date (Today, Yesterday, or formatted date)
+  - Shows duration (HH:MM:SS), exercise count, volume (with k suffix formatting)
+  - Muscle groups displayed as pill-shaped tags (max 4 with +N overflow)
+  - TouchableOpacity with chevron for navigation affordance
+  - testID prop for E2E testing
+- Created app/workout/[id].tsx workout detail screen:
+  - Displays workout date and time range
+  - Stats cards: Duration, Volume (lbs), Sets count
+  - Muscles Trained section with primary muscles
+  - Exercises list with all sets (working + warmup)
+  - Set details: weight x reps with warmup indicator
+  - Notes section if present
+  - Loading, error, and web platform states
+- Updated app/(tabs)/workouts.tsx:
+  - Replaced ScrollView with FlashList for 60 FPS performance
+  - loadData fetches exercise count and workout history in parallel
+  - Pull-to-refresh with RefreshControl (iOS only)
+  - Empty state when no workouts exist
+  - Workout cards navigate to detail screen on tap
+- Updated app/_layout.tsx:
+  - Added workout/[id] route with card presentation
+- Updated components/workout/index.ts to export WorkoutCard
+- Updated maestro/us-014-workout-history.yaml:
+  - Verifies workout-history FlashList is visible
+  - Verifies Recent Workouts header and Exercise Library card
+  - Verifies empty state message
+  - Tests navigation to workout detail (optional)
+- All checks pass: npm run check (format, lint, types, tests, audit)

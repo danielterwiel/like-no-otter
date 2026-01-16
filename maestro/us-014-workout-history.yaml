@@ -6,24 +6,37 @@ appId: com.likenootter.app
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
 # Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Verify workout history list is visible (when implemented)
+# Verify workout history list is visible
 - assertVisible:
     id: "workout-history"
-    optional: true
 
-# Verify workout cards show date and duration
+# Verify Recent Workouts header
 - assertVisible:
-    id: "workout-card"
+    text: "Recent Workouts"
+
+# Verify Exercise Library card
+- assertVisible:
+    text: "Exercise Library"
+
+# Verify Start Workout button
+- assertVisible:
+    id: "start-workout-button"
+
+# Verify empty state when no workouts exist
+- assertVisible:
+    text: "No workouts yet"
     optional: true
 
-# Test tap on workout card to see details
+# If there is a workout card, test navigation to detail view
 - tapOn:
     id: "workout-card"
     optional: true

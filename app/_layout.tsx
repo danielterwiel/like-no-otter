@@ -56,6 +56,14 @@ function AppContent() {
             gestureEnabled: false,
           }}
         />
+        <Stack.Screen
+          name="workout/[id]"
+          options={{
+            presentation: "card",
+            headerShown: true,
+            title: "Workout Details",
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
       <PortalHost />
