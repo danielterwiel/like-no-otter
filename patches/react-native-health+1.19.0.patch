@@ -1,0 +1,50 @@
+diff --git a/node_modules/react-native-health/index.js b/node_modules/react-native-health/index.js
+index 06e5105..08767bd 100644
+--- a/node_modules/react-native-health/index.js
++++ b/node_modules/react-native-health/index.js
+@@ -1,14 +1,36 @@
+ import { Activities, Observers, Permissions, Units } from './src/constants'
++import { NativeModules, Platform } from 'react-native'
+ 
+-const { AppleHealthKit } = require('react-native').NativeModules
++// Fix for React Native new architecture lazy loading
++// Create a Proxy to defer NativeModules access until method call time
++const createLazyHealthKit = () => {
++  if (Platform.OS !== 'ios') {
++    return {
++      Constants: { Activities, Observers, Permissions, Units }
++    }
++  }
+ 
+-export const HealthKit = Object.assign({}, AppleHealthKit, {
+-  Constants: {
+-    Activities,
+-    Observers,
+-    Permissions,
+-    Units,
+-  },
+-})
++  // Use a Proxy to defer all method calls to the native module
++  return new Proxy(
++    {
++      Constants: { Activities, Observers, Permissions, Units }
++    },
++    {
++      get(target, prop) {
++        if (prop === 'Constants') {
++          return target.Constants
++        }
++        // Lazily access the native module at call time
++        const AppleHealthKit = NativeModules.AppleHealthKit
++        if (AppleHealthKit && typeof AppleHealthKit[prop] === 'function') {
++          return AppleHealthKit[prop].bind(AppleHealthKit)
++        }
++        return AppleHealthKit?.[prop]
++      }
++    }
++  )
++}
++
++export const HealthKit = createLazyHealthKit()
+ 
+ module.exports = HealthKit

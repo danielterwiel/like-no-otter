@@ -49,9 +49,11 @@ export function HealthKitProvider({ children }: HealthKitProviderProps) {
         const completed = completedStr === "true";
         setHasCompletedOnboarding(completed);
 
-        // If available and onboarding completed, check actual auth status
+        // If available and onboarding completed, re-initialize to verify auth status
+        // Note: initHealthKit doesn't re-prompt if already authorized, it just verifies
         if (available && completed) {
-          const status = await healthKitService.getAuthStatus();
+          const success = await healthKitService.requestAuthorization();
+          const status = success ? "authorized" : "denied";
           setAuthStatus(status);
           await AsyncStorage.setItem(AUTH_STATUS_KEY, status);
         } else if (!available) {

@@ -1,19 +1,17 @@
 import { Tabs } from "expo-router";
-import { View } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Ionicons } from "@expo/vector-icons";
 
-function TabIcon({ name, focused }: { name: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    Today: "📅",
-    Health: "❤️",
-    Workouts: "💪",
-    Tasks: "✓",
-  };
-  return (
-    <View className="items-center justify-center">
-      <Text className={`text-lg ${focused ? "opacity-100" : "opacity-50"}`}>{icons[name]}</Text>
-    </View>
-  );
+type IconName = React.ComponentProps<typeof Ionicons>["name"];
+
+const TAB_ICONS: Record<string, IconName> = {
+  Today: "calendar-outline",
+  Health: "heart-outline",
+  Workouts: "barbell-outline",
+  Tasks: "checkbox-outline",
+};
+
+function TabIcon({ name, color }: { name: string; color: string }) {
+  return <Ionicons name={TAB_ICONS[name]} size={24} color={color} />;
 }
 
 export default function TabLayout() {
@@ -33,28 +31,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Today",
-          tabBarIcon: ({ focused }) => <TabIcon name="Today" focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon name="Today" color={color} />,
         }}
       />
       <Tabs.Screen
         name="health"
         options={{
           title: "Health",
-          tabBarIcon: ({ focused }) => <TabIcon name="Health" focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon name="Health" color={color} />,
         }}
       />
       <Tabs.Screen
         name="workouts"
         options={{
           title: "Workouts",
-          tabBarIcon: ({ focused }) => <TabIcon name="Workouts" focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon name="Workouts" color={color} />,
         }}
       />
       <Tabs.Screen
         name="tasks"
         options={{
           title: "Tasks",
-          tabBarIcon: ({ focused }) => <TabIcon name="Tasks" focused={focused} />,
+          tabBarIcon: ({ color }) => <TabIcon name="Tasks" color={color} />,
         }}
       />
     </Tabs>
