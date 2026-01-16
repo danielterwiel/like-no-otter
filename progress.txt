@@ -283,3 +283,46 @@ Completed:
   - Verifies "RHR Trend" and "Last 7 days" text
   - Handles empty state and web fallback scenarios
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-008 - HealthKit sync service
+
+Completed:
+- Created lib/health/sync.ts with syncHealthData function:
+  - Fetches sleep, steps, calories, RHR for last 30 days from HealthKit
+  - Stores data in health_metrics SQLite table with syncedAt timestamp
+  - Deletes old records and inserts fresh data in a single transaction
+  - Returns SyncResult with success status, timestamp, and records count
+  - Gracefully handles errors without crashing (logs and continues)
+  - Skips sync on non-iOS platforms
+- Added date-specific fetch functions to lib/health/queries.ts:
+  - fetchSleepDataForDate(date): fetches sleep data for specific date
+  - fetchStepsDataForDate(date): fetches steps for specific date
+  - fetchCaloriesDataForDate(date): fetches calories for specific date
+  - fetchHeartRateDataForDate(date): fetches RHR for specific date
+- Created lib/health/sync.test.ts with 5 unit tests:
+  - Verifies fetching data for 30 days
+  - Verifies storing data with syncedAt timestamp
+  - Verifies error handling doesn't crash
+  - Verifies non-iOS platforms skip sync
+  - Verifies sync result contains expected fields
+- Installed @tanstack/react-query for cache management
+- Created providers/QueryProvider.tsx:
+  - Configures QueryClient with offline-first settings
+  - networkMode: "offlineFirst" for queries and mutations
+  - 5-minute stale time, 30-minute cache time
+  - Exports invalidateHealthQueries() for cache invalidation
+  - Exports getQueryClient() for direct access
+- Created providers/HealthKitSyncProvider.tsx:
+  - Runs sync on app foreground via AppState listener
+  - Triggers initial sync when provider mounts (if authorized)
+  - Invalidates TanStack Query cache after successful sync
+  - Provides useHealthKitSync() hook with: lastSyncResult, isSyncing, triggerSync
+  - Skips sync if already syncing or not authorized
+- Updated app/_layout.tsx:
+  - Added QueryProvider wrapping all other providers
+  - Added HealthKitSyncProvider after HealthKitProvider
+- Updated lib/health/index.ts to export sync functions and types
+- Created __mocks__/react-native.ts for vitest compatibility
+- Updated vitest.config.ts with react-native alias for testing
+- Updated maestro/us-008-healthkit-sync.yaml for E2E testing
+- All checks pass: npm run check (format, lint, types, tests, audit)

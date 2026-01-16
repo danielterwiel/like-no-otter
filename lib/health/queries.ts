@@ -228,6 +228,169 @@ export async function fetchTodayHealthData(): Promise<HealthData> {
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+// Helper to get start/end of a specific date
+function getStartOfDate(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getEndOfDate(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+// Date-specific fetch functions for sync service
+export async function fetchSleepDataForDate(date: Date): Promise<SleepData | null> {
+  if (Platform.OS !== "ios") {
+    return null;
+  }
+
+  try {
+    const healthKit = await getHealthKit();
+    if (!healthKit) return null;
+
+    // For sleep, look from 6 PM the day before to end of given date
+    const startDate = new Date(date);
+    startDate.setDate(startDate.getDate() - 1);
+    startDate.setHours(18, 0, 0, 0);
+
+    const options = {
+      startDate: startDate.toISOString(),
+      endDate: getEndOfDate(date).toISOString(),
+    };
+
+    return new Promise((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      healthKit.getSleepSamples(options, (err: Error | null, results: any[]) => {
+        if (err || !results || results.length === 0) {
+          resolve(null);
+          return;
+        }
+
+        let totalMinutes = 0;
+        let earliestStart: Date | null = null;
+        let latestEnd: Date | null = null;
+
+        for (const sample of results) {
+          if (sample.value === "ASLEEP" || sample.value === "INBED") {
+            const start = new Date(sample.startDate);
+            const end = new Date(sample.endDate);
+            const duration = (end.getTime() - start.getTime()) / (1000 * 60);
+            totalMinutes += duration;
+
+            if (!earliestStart || start < earliestStart) {
+              earliestStart = start;
+            }
+            if (!latestEnd || end > latestEnd) {
+              latestEnd = end;
+            }
+          }
+        }
+
+        resolve({
+          totalHours: totalMinutes / 60,
+          startTime: earliestStart,
+          endTime: latestEnd,
+        });
+      });
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchStepsDataForDate(date: Date): Promise<StepsData | null> {
+  if (Platform.OS !== "ios") {
+    return null;
+  }
+
+  try {
+    const healthKit = await getHealthKit();
+    if (!healthKit) return null;
+
+    const options = {
+      date: date.toISOString(),
+      includeManuallyAdded: true,
+    };
+
+    return new Promise((resolve) => {
+      healthKit.getStepCount(options, (err: Error | null, results: { value: number }) => {
+        if (err || !results) {
+          resolve(null);
+          return;
+        }
+        resolve({ count: Math.round(results.value) });
+      });
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchCaloriesDataForDate(date: Date): Promise<CaloriesData | null> {
+  if (Platform.OS !== "ios") {
+    return null;
+  }
+
+  try {
+    const healthKit = await getHealthKit();
+    if (!healthKit) return null;
+
+    const options = {
+      startDate: getStartOfDate(date).toISOString(),
+      endDate: getEndOfDate(date).toISOString(),
+    };
+
+    return new Promise((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      healthKit.getActiveEnergyBurned(options, (err: Error | null, results: any[]) => {
+        if (err || !results || results.length === 0) {
+          resolve(null);
+          return;
+        }
+
+        const totalCalories = results.reduce((sum, sample) => sum + (sample.value || 0), 0);
+        resolve({ activeCalories: Math.round(totalCalories) });
+      });
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchHeartRateDataForDate(date: Date): Promise<HeartRateData | null> {
+  if (Platform.OS !== "ios") {
+    return null;
+  }
+
+  try {
+    const healthKit = await getHealthKit();
+    if (!healthKit) return null;
+
+    const options = {
+      startDate: getStartOfDate(date).toISOString(),
+      endDate: getEndOfDate(date).toISOString(),
+    };
+
+    return new Promise((resolve) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      healthKit.getRestingHeartRate(options, (err: Error | null, results: any[]) => {
+        if (err || !results || results.length === 0) {
+          resolve(null);
+          return;
+        }
+
+        const mostRecent = results[results.length - 1];
+        resolve({ restingHeartRate: Math.round(mostRecent.value) });
+      });
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchRHRTrendData(): Promise<RHRTrendData | null> {
   if (Platform.OS !== "ios") {
     return null;

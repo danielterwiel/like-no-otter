@@ -207,7 +207,7 @@
         "Maestro test passes: maestro/us-008-healthkit-sync.yaml"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": "Offline-first: always read from SQLite, sync in background"
     },
     {

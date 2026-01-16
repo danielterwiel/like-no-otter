@@ -6,6 +6,8 @@ import { StatusBar } from "expo-status-bar";
 import { PortalHost } from "@rn-primitives/portal";
 import { DatabaseProvider } from "@/providers/DatabaseProvider";
 import { HealthKitProvider, useHealthKit } from "@/providers/HealthKitProvider";
+import { HealthKitSyncProvider } from "@/providers/HealthKitSyncProvider";
+import { QueryProvider } from "@/providers/QueryProvider";
 import { HealthKitOnboarding } from "@/components/HealthKitOnboarding";
 import { Text } from "@/components/ui/text";
 
@@ -39,10 +41,14 @@ function AppContent() {
 
 export default function RootLayout() {
   return (
-    <DatabaseProvider>
-      <HealthKitProvider>
-        <AppContent />
-      </HealthKitProvider>
-    </DatabaseProvider>
+    <QueryProvider>
+      <DatabaseProvider>
+        <HealthKitProvider>
+          <HealthKitSyncProvider>
+            <AppContent />
+          </HealthKitSyncProvider>
+        </HealthKitProvider>
+      </DatabaseProvider>
+    </QueryProvider>
   );
 }

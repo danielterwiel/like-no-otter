@@ -6,6 +6,10 @@ export {
   fetchCaloriesData,
   fetchHeartRateData,
   fetchRHRTrendData,
+  fetchSleepDataForDate,
+  fetchStepsDataForDate,
+  fetchCaloriesDataForDate,
+  fetchHeartRateDataForDate,
   type HealthData,
   type SleepData,
   type StepsData,
@@ -14,3 +18,4 @@ export {
   type RHRTrendData,
   type RHRTrendPoint,
 } from "./queries";
+export { syncHealthData, type SyncResult } from "./sync";
