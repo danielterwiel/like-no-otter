@@ -31,9 +31,22 @@ export default function ActiveWorkoutScreen() {
 
   const handleFinish = useCallback(() => {
     send({ type: "FINISH" });
-    // TODO: Navigate to summary screen (US-013)
-    router.back();
-  }, [send, router]);
+    // Navigate to summary screen with workout data
+    router.replace({
+      pathname: "/workout/summary",
+      params: {
+        exercises: JSON.stringify(state.context.exercises),
+        startTime: state.context.startTime?.toISOString() ?? new Date().toISOString(),
+        durationSeconds: state.context.elapsedSeconds.toString(),
+      },
+    });
+  }, [
+    send,
+    router,
+    state.context.exercises,
+    state.context.startTime,
+    state.context.elapsedSeconds,
+  ]);
 
   const handleCancel = useCallback(() => {
     send({ type: "CANCEL" });

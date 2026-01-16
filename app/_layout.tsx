@@ -48,6 +48,14 @@ function AppContent() {
             gestureEnabled: false,
           }}
         />
+        <Stack.Screen
+          name="workout/summary"
+          options={{
+            presentation: "fullScreenModal",
+            headerShown: false,
+            gestureEnabled: false,
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
       <PortalHost />

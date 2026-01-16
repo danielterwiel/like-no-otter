@@ -298,7 +298,7 @@
         "Maestro test passes: maestro/us-013-workout-summary.yaml"
       ],
       "priority": 13,
-      "passes": false,
+      "passes": true,
       "notes": "Calculate total volume as sum of (weight * reps) across all sets"
     },
     {

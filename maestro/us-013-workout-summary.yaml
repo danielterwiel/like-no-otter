@@ -6,29 +6,98 @@ appId: com.likenootter.app
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
-# Navigate to finish a workout (when implemented)
+# Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Assume workout is finished, verify summary screen
+- assertVisible:
+    id: "screen-workouts"
+
+# Start workout setup
+- tapOn:
+    text: "Start Workout"
+
+# Search for an exercise
+- tapOn:
+    id: "exercise-search-input"
+
+- inputText: "Bench"
+
+# Select an exercise
+- tapOn:
+    text: "Barbell Bench Press"
+
+# Start the workout
+- tapOn:
+    id: "start-workout-button"
+
+- assertVisible:
+    id: "workout-timer"
+
+# Add a set to the workout
+- tapOn:
+    id: "weight-input"
+
+- inputText: "135"
+
+- tapOn:
+    id: "reps-input"
+
+- inputText: "10"
+
+- tapOn:
+    id: "add-set-button"
+
+# Skip the rest timer
+- tapOn:
+    text: "Skip Rest"
+    optional: true
+
+# Finish the workout to go to summary
+- tapOn:
+    id: "finish-workout-button"
+
+# Verify summary screen
 - assertVisible:
     id: "workout-summary"
-    optional: true
 
 # Verify duration is shown
 - assertVisible:
     text: "Duration"
-    optional: true
 
-# Verify total volume is shown
+# Verify volume is shown
 - assertVisible:
     text: "Volume"
-    optional: true
+
+# Verify exercises count
+- assertVisible:
+    text: "Exercises"
+
+# Verify sets count
+- assertVisible:
+    text: "Sets"
+
+# Verify muscles trained section
+- assertVisible:
+    text: "Muscles Trained"
+
+# Verify exercise list
+- assertVisible:
+    text: "Exercises Completed"
+
+# Verify the exercise we added is in the list
+- assertVisible:
+    text: "Barbell Bench Press"
 
 # Save the workout
 - tapOn:
-    text: "Save"
-    optional: true
+    id: "save-workout-button"
+
+# Verify we're back at the workouts tab
+- assertVisible:
+    id: "screen-workouts"

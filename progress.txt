@@ -465,3 +465,39 @@ Completed:
   - Log another set to verify rest timer appears again
   - Cancel workout to clean up
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-013 - Workout summary and save
+
+Completed:
+- Created lib/db/queries/workouts.ts with workout persistence functions:
+  - SaveWorkoutInput and SaveWorkoutResult interfaces
+  - calculateTotalVolume(): calculates weight x reps across all non-warmup sets
+  - getTrainedMuscleGroups(): extracts unique primary and secondary muscles
+  - getTotalSetsCount(): counts non-warmup sets
+  - saveWorkout(): persists workout to SQLite with exercises and sets in transaction
+    - Inserts into workouts table (start_time, end_time, duration, volume, etc.)
+    - Inserts into workout_exercises with order_index
+    - Inserts into workout_sets with weight, reps, warmup flag, completed_at
+- Created app/workout/summary.tsx workout summary screen:
+  - Receives workout data via route params (exercises, startTime, durationSeconds)
+  - Displays stats cards: Duration (HH:MM:SS), Volume (formatted with k suffix), Exercises count, Sets count
+  - Muscle groups trained shown as pill-shaped tags
+  - Exercises completed list with set counts (working + warmup)
+  - Save button commits workout to SQLite and navigates to Workouts tab
+  - Discard button navigates back without saving
+  - Loading state while saving
+  - Error state with message if save fails
+  - Web platform fallback message
+- Updated app/workout/active.tsx:
+  - handleFinish now navigates to /workout/summary with JSON-serialized workout data
+  - Passes exercises, startTime (ISO string), and durationSeconds via route params
+- Updated app/_layout.tsx:
+  - Added workout/summary route with fullScreenModal presentation
+  - headerShown: false, gestureEnabled: false
+- Updated lib/db/index.ts to export workout query functions
+- Updated maestro/us-013-workout-summary.yaml with full E2E test flow:
+  - Complete workout flow: setup -> add exercise -> log set -> finish
+  - Verifies summary screen shows Duration, Volume, Exercises, Sets
+  - Verifies Muscles Trained and Exercises Completed sections
+  - Tests save button returns to workouts tab
+- All checks pass: npm run check (format, lint, types, tests, audit)
