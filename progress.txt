@@ -1276,3 +1276,42 @@ Completed:
   - Tests navigation back to More screen
   - Note: Full mapping flow requires valid CSV file which Maestro cannot provide
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-011 (Integrations) - Strong imported workout display
+
+Completed:
+- Added WorkoutSource type ('manual' | 'strong' | 'healthkit') to lib/db/schema/workouts.ts
+- Added source column migration in lib/db/hooks/useMigrations.ts (safe migration with default 'manual')
+- Updated lib/db/queries/workouts.ts with source tracking:
+  - Added source field to WorkoutHistoryItem and WorkoutDetailItem interfaces
+  - Updated getWorkoutHistory() and getWorkoutById() to include source field
+  - Updated importStrongWorkout() to set source='strong' on imported workouts
+  - Added checkWorkoutDuplicate(): detects duplicates by date and time range
+  - Added deleteWorkout(): removes workout with cascade delete for exercises/sets
+  - Added getStrongImportStats(): returns total imported workouts and last import date
+  - Added getWorkoutHistoryFiltered(): filters workouts by source (all/manual/imported)
+  - Added importStrongWorkoutsWithDuplicateHandling(): handles skip/replace/import_as_new options
+- Updated components/workout/WorkoutCard.tsx:
+  - Added SourceBadge component showing dumbbell icon for Strong, heart for HealthKit
+  - Badge displays source name in blue pill-shaped indicator
+  - Only shows badge for imported workouts (not manual)
+- Updated app/(tabs)/workouts.tsx with filter pills:
+  - Added filter state (all/manual/imported)
+  - Added filter pills UI below "Recent Workouts" header
+  - Filter buttons: All, Manual, Imported with active state styling
+  - Filters apply immediately on tap
+- Updated app/workout/[id].tsx with imported workout display:
+  - Added "Imported from Strong/HealthKit" header banner for imported workouts
+  - Shows read-only badge indicating workout cannot be edited
+  - Added delete button with confirmation Alert dialog
+  - Delete navigates back to workouts list on success
+- Updated app/connect/strong.tsx with import history:
+  - Added import stats loading via useFocusEffect
+  - Shows import history card when workouts have been imported
+  - Displays total workouts imported and last import date
+- Created maestro/us-011-strong-display.yaml E2E test:
+  - Verifies filter pills (All, Manual, Imported) on Workouts tab
+  - Verifies filter button interaction
+  - Tests Strong connect screen navigation
+  - Tests workout detail screen with delete button
+- All checks pass: npm run check (format, lint, types, tests, audit)

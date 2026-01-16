@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import type { WorkoutExerciseState } from "@/lib/workout";
 import type { MuscleGroup } from "@/constants/exercises";
 import { saveWorkoutToHealthKit } from "@/lib/health";
+import type { WorkoutSource } from "@/lib/db/schema/workouts";
 
 const ALL_MUSCLE_GROUPS: MuscleGroup[] = [
   "chest",
@@ -100,6 +101,7 @@ export interface WorkoutHistoryItem {
   totalVolume: number;
   exerciseCount: number;
   muscleGroups: string[];
+  source: WorkoutSource;
 }
 
 /**
@@ -121,8 +123,9 @@ export async function getWorkoutHistory(): Promise<WorkoutHistoryItem[]> {
       end_time: number;
       duration_seconds: number;
       total_volume: number;
+      source: WorkoutSource | null;
     }>(
-      `SELECT id, start_time, end_time, duration_seconds, total_volume
+      `SELECT id, start_time, end_time, duration_seconds, total_volume, source
        FROM workouts
        ORDER BY start_time DESC`,
     );
@@ -162,6 +165,7 @@ export async function getWorkoutHistory(): Promise<WorkoutHistoryItem[]> {
         totalVolume: workout.total_volume,
         exerciseCount: exerciseCountResult?.count ?? 0,
         muscleGroups: Array.from(muscleSet),
+        source: workout.source ?? "manual",
       });
     }
 
@@ -191,8 +195,9 @@ export async function getWorkoutById(workoutId: number): Promise<WorkoutDetailIt
       duration_seconds: number;
       total_volume: number;
       notes: string | null;
+      source: WorkoutSource | null;
     }>(
-      `SELECT id, start_time, end_time, duration_seconds, total_volume, notes FROM workouts WHERE id = ?`,
+      `SELECT id, start_time, end_time, duration_seconds, total_volume, notes, source FROM workouts WHERE id = ?`,
       workoutId,
     );
 
@@ -255,6 +260,7 @@ export async function getWorkoutById(workoutId: number): Promise<WorkoutDetailIt
       durationSeconds: workout.duration_seconds,
       totalVolume: workout.total_volume,
       notes: workout.notes,
+      source: workout.source ?? "manual",
       exercises: exerciseDetails,
     };
   } catch (error) {
@@ -286,6 +292,7 @@ export interface WorkoutDetailItem {
   durationSeconds: number;
   totalVolume: number;
   notes: string | null;
+  source: WorkoutSource;
   exercises: WorkoutExerciseDetail[];
 }
 
@@ -726,10 +733,10 @@ export async function importStrongWorkout(
     let workoutId: number | undefined;
 
     db.withTransactionSync(() => {
-      // Insert workout
+      // Insert workout with source='strong'
       db.runSync(
-        `INSERT INTO workouts (start_time, end_time, duration_seconds, total_volume, notes, created_at, synced_to_healthkit)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO workouts (start_time, end_time, duration_seconds, total_volume, notes, created_at, synced_to_healthkit, source)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         Math.floor(workout.date.getTime() / 1000),
         Math.floor(endTime.getTime() / 1000),
         workout.durationSeconds,
@@ -737,6 +744,7 @@ export async function importStrongWorkout(
         workout.notes,
         Math.floor(now.getTime() / 1000),
         0,
+        "strong",
       );
 
       const result = db.getFirstSync<{ id: number }>("SELECT last_insert_rowid() as id");
@@ -820,4 +828,231 @@ export async function importStrongWorkouts(
     skippedCount,
     error: skippedCount > 0 ? `${skippedCount} workout(s) failed to import` : undefined,
   };
+}
+
+/**
+ * Check if a workout is a duplicate based on date and workout name hash
+ * Used for re-import detection
+ */
+export async function checkWorkoutDuplicate(
+  date: Date,
+  _name: string,
+): Promise<{ isDuplicate: boolean; existingId?: number }> {
+  if (IS_WEB) {
+    return { isDuplicate: false };
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    // Check for existing workout within 1 minute of the same date with source='strong'
+    const startRange = Math.floor(date.getTime() / 1000) - 60;
+    const endRange = Math.floor(date.getTime() / 1000) + 60;
+
+    const existing = db.getFirstSync<{ id: number }>(
+      `SELECT id FROM workouts
+       WHERE source = 'strong'
+       AND start_time >= ?
+       AND start_time <= ?`,
+      startRange,
+      endRange,
+    );
+
+    return {
+      isDuplicate: !!existing,
+      existingId: existing?.id,
+    };
+  } catch (error) {
+    console.error("Failed to check workout duplicate:", error);
+    return { isDuplicate: false };
+  }
+}
+
+export type DuplicateHandling = "skip" | "replace" | "import_as_new";
+
+/**
+ * Import Strong workouts with duplicate handling
+ */
+export async function importStrongWorkoutsWithDuplicateHandling(
+  workouts: StrongImportWorkout[],
+  duplicateHandling: DuplicateHandling,
+): Promise<StrongImportResult> {
+  let importedCount = 0;
+  let skippedCount = 0;
+
+  for (const workout of workouts) {
+    const duplicate = await checkWorkoutDuplicate(workout.date, workout.name);
+
+    if (duplicate.isDuplicate) {
+      switch (duplicateHandling) {
+        case "skip":
+          skippedCount++;
+          continue;
+        case "replace":
+          // Delete existing workout and import new
+          if (duplicate.existingId) {
+            await deleteWorkout(duplicate.existingId);
+          }
+          break;
+        case "import_as_new":
+          // Just import, create new entry
+          break;
+      }
+    }
+
+    const result = await importStrongWorkout(workout);
+    if (result.success) {
+      importedCount++;
+    } else {
+      skippedCount++;
+      console.warn(`Skipped workout: ${workout.name} on ${workout.date}`, result.error);
+    }
+  }
+
+  return {
+    success: importedCount > 0,
+    importedCount,
+    skippedCount,
+    error: skippedCount > 0 ? `${skippedCount} workout(s) skipped or failed` : undefined,
+  };
+}
+
+/**
+ * Delete a workout by ID
+ */
+export async function deleteWorkout(workoutId: number): Promise<boolean> {
+  if (IS_WEB) {
+    return false;
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    // CASCADE delete will remove workout_exercises and workout_sets
+    db.runSync(`DELETE FROM workouts WHERE id = ?`, workoutId);
+    return true;
+  } catch (error) {
+    console.error("Failed to delete workout:", error);
+    return false;
+  }
+}
+
+/**
+ * Strong import statistics for display in More tab
+ */
+export interface StrongImportStats {
+  totalWorkouts: number;
+  lastImportDate: Date | null;
+}
+
+/**
+ * Get Strong import statistics
+ */
+export async function getStrongImportStats(): Promise<StrongImportStats> {
+  if (IS_WEB) {
+    return { totalWorkouts: 0, lastImportDate: null };
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    const countResult = db.getFirstSync<{ count: number }>(
+      `SELECT COUNT(*) as count FROM workouts WHERE source = 'strong'`,
+    );
+
+    const lastResult = db.getFirstSync<{ created_at: number }>(
+      `SELECT created_at FROM workouts WHERE source = 'strong' ORDER BY created_at DESC LIMIT 1`,
+    );
+
+    return {
+      totalWorkouts: countResult?.count ?? 0,
+      lastImportDate: lastResult ? new Date(lastResult.created_at * 1000) : null,
+    };
+  } catch (error) {
+    console.error("Failed to get Strong import stats:", error);
+    return { totalWorkouts: 0, lastImportDate: null };
+  }
+}
+
+/**
+ * Get workouts by source filter
+ */
+export type WorkoutSourceFilter = "all" | "manual" | "imported";
+
+export async function getWorkoutHistoryFiltered(
+  filter: WorkoutSourceFilter,
+): Promise<WorkoutHistoryItem[]> {
+  if (IS_WEB) {
+    return [];
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    let whereClause = "";
+    if (filter === "manual") {
+      whereClause = "WHERE source IS NULL OR source = 'manual'";
+    } else if (filter === "imported") {
+      whereClause = "WHERE source = 'strong' OR source = 'healthkit'";
+    }
+
+    const workouts = db.getAllSync<{
+      id: number;
+      start_time: number;
+      end_time: number;
+      duration_seconds: number;
+      total_volume: number;
+      source: WorkoutSource | null;
+    }>(
+      `SELECT id, start_time, end_time, duration_seconds, total_volume, source
+       FROM workouts
+       ${whereClause}
+       ORDER BY start_time DESC`,
+    );
+
+    const result: WorkoutHistoryItem[] = [];
+
+    for (const workout of workouts) {
+      const exerciseCountResult = db.getFirstSync<{ count: number }>(
+        `SELECT COUNT(*) as count FROM workout_exercises WHERE workout_id = ?`,
+        workout.id,
+      );
+
+      const muscleGroupsResult = db.getAllSync<{ primary_muscles: string }>(
+        `SELECT DISTINCT e.primary_muscles
+         FROM workout_exercises we
+         JOIN exercises e ON we.exercise_id = e.id
+         WHERE we.workout_id = ?`,
+        workout.id,
+      );
+
+      const muscleSet = new Set<string>();
+      for (const row of muscleGroupsResult) {
+        const muscles = row.primary_muscles.split(",");
+        for (const muscle of muscles) {
+          muscleSet.add(muscle.trim());
+        }
+      }
+
+      result.push({
+        id: workout.id,
+        startTime: new Date(workout.start_time * 1000),
+        endTime: new Date(workout.end_time * 1000),
+        durationSeconds: workout.duration_seconds,
+        totalVolume: workout.total_volume,
+        exerciseCount: exerciseCountResult?.count ?? 0,
+        muscleGroups: Array.from(muscleSet),
+        source: workout.source ?? "manual",
+      });
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Failed to fetch filtered workout history:", error);
+    return [];
+  }
 }

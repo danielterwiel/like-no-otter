@@ -1,5 +1,7 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
+export type WorkoutSource = "manual" | "strong" | "healthkit";
+
 export const workouts = sqliteTable("workouts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   startTime: integer("start_time", { mode: "timestamp" }).notNull(),
@@ -9,6 +11,7 @@ export const workouts = sqliteTable("workouts", {
   notes: text("notes"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   syncedToHealthKit: integer("synced_to_healthkit", { mode: "boolean" }).default(false),
+  source: text("source").$type<WorkoutSource>().default("manual"),
 });
 
 export const workoutExercises = sqliteTable("workout_exercises", {

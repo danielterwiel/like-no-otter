@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { View, ScrollView, Platform, ActivityIndicator } from "react-native";
-import { useLocalSearchParams, Stack } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  View,
+  ScrollView,
+  Platform,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getWorkoutById, type WorkoutDetailItem } from "@/lib/db/queries/workouts";
+import { getWorkoutById, deleteWorkout, type WorkoutDetailItem } from "@/lib/db/queries/workouts";
 import { formatDuration } from "@/lib/workout";
 
 const IS_WEB = Platform.OS === "web";
@@ -34,8 +41,10 @@ function formatVolume(volume: number): string {
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [workout, setWorkout] = useState<WorkoutDetailItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function loadWorkout() {
@@ -51,6 +60,34 @@ export default function WorkoutDetailScreen() {
 
     loadWorkout();
   }, [id]);
+
+  const handleDelete = async () => {
+    if (!workout) return;
+
+    Alert.alert(
+      "Delete Workout",
+      "Are you sure you want to delete this workout? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            const success = await deleteWorkout(workout.id);
+            setIsDeleting(false);
+            if (success) {
+              router.back();
+            } else {
+              Alert.alert("Error", "Failed to delete workout. Please try again.");
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const isImported = workout?.source === "strong" || workout?.source === "healthkit";
 
   if (IS_WEB) {
     return (
@@ -103,8 +140,28 @@ export default function WorkoutDetailScreen() {
       <ScrollView
         testID="workout-detail"
         className="flex-1 bg-background"
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       >
+        {/* Imported From Header */}
+        {isImported && (
+          <View
+            testID="workout-imported-header"
+            className="mb-4 flex-row items-center rounded-lg bg-blue-500/10 p-3"
+          >
+            {workout.source === "strong" ? (
+              <MaterialCommunityIcons name="dumbbell" size={20} color="#2196F3" />
+            ) : (
+              <Ionicons name="heart" size={20} color="#ef4444" />
+            )}
+            <Text className="ml-2 font-medium text-blue-500">
+              Imported from {workout.source === "strong" ? "Strong" : "HealthKit"}
+            </Text>
+            <View className="ml-auto rounded-full bg-muted px-2 py-0.5">
+              <Text className="text-xs text-muted-foreground">Read-only</Text>
+            </View>
+          </View>
+        )}
+
         {/* Header */}
         <View className="mb-4">
           <Text className="text-2xl font-bold text-foreground">
@@ -228,6 +285,23 @@ export default function WorkoutDetailScreen() {
             </CardContent>
           </Card>
         )}
+
+        {/* Delete Button */}
+        <TouchableOpacity
+          testID="delete-workout-button"
+          onPress={handleDelete}
+          disabled={isDeleting}
+          className="mt-6 flex-row items-center justify-center rounded-lg bg-destructive/10 py-3"
+        >
+          {isDeleting ? (
+            <ActivityIndicator size="small" color="#ef4444" />
+          ) : (
+            <>
+              <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              <Text className="ml-2 font-medium text-destructive">Delete Workout</Text>
+            </>
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </>
   );

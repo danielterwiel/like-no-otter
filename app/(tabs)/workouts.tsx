@@ -11,9 +11,11 @@ import { WorkoutCard, MuscleFrequencyChart } from "@/components/workout";
 import { getExerciseCount } from "@/lib/db";
 import {
   getWorkoutHistory,
+  getWorkoutHistoryFiltered,
   getMuscleFrequencyData,
   type WorkoutHistoryItem,
   type MuscleFrequencyData,
+  type WorkoutSourceFilter,
 } from "@/lib/db/queries/workouts";
 
 const IS_WEB = Platform.OS === "web";
@@ -26,19 +28,23 @@ export default function WorkoutsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMuscleFrequencyLoading, setIsMuscleFrequencyLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [filter, setFilter] = useState<WorkoutSourceFilter>("all");
 
-  const loadData = useCallback(async () => {
-    const [count, history, frequency] = await Promise.all([
-      getExerciseCount(),
-      getWorkoutHistory(),
-      getMuscleFrequencyData(),
-    ]);
-    setExerciseCount(count);
-    setWorkouts(history);
-    setMuscleFrequency(frequency);
-    setIsLoading(false);
-    setIsMuscleFrequencyLoading(false);
-  }, []);
+  const loadData = useCallback(
+    async (currentFilter: WorkoutSourceFilter = filter) => {
+      const [count, history, frequency] = await Promise.all([
+        getExerciseCount(),
+        currentFilter === "all" ? getWorkoutHistory() : getWorkoutHistoryFiltered(currentFilter),
+        getMuscleFrequencyData(),
+      ]);
+      setExerciseCount(count);
+      setWorkouts(history);
+      setMuscleFrequency(frequency);
+      setIsLoading(false);
+      setIsMuscleFrequencyLoading(false);
+    },
+    [filter],
+  );
 
   useEffect(() => {
     loadData();
@@ -46,9 +52,17 @@ export default function WorkoutsScreen() {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await loadData();
+    await loadData(filter);
     setIsRefreshing(false);
-  }, [loadData]);
+  }, [loadData, filter]);
+
+  const handleFilterChange = useCallback(
+    (newFilter: WorkoutSourceFilter) => {
+      setFilter(newFilter);
+      loadData(newFilter);
+    },
+    [loadData],
+  );
 
   const handleWorkoutPress = useCallback(
     (workoutId: number) => {
@@ -101,8 +115,45 @@ export default function WorkoutsScreen() {
         </CardContent>
       </Card>
 
-      {/* Recent Workouts Header */}
-      <Text className="mb-3 text-lg font-semibold text-foreground">Recent Workouts</Text>
+      {/* Recent Workouts Header with Filter */}
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="text-lg font-semibold text-foreground">Recent Workouts</Text>
+        <View testID="workout-filter-pills" className="flex-row gap-1">
+          <TouchableOpacity
+            testID="filter-all"
+            onPress={() => handleFilterChange("all")}
+            className={`rounded-full px-3 py-1 ${filter === "all" ? "bg-primary" : "bg-muted"}`}
+          >
+            <Text
+              className={`text-xs font-medium ${filter === "all" ? "text-primary-foreground" : "text-muted-foreground"}`}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="filter-manual"
+            onPress={() => handleFilterChange("manual")}
+            className={`rounded-full px-3 py-1 ${filter === "manual" ? "bg-primary" : "bg-muted"}`}
+          >
+            <Text
+              className={`text-xs font-medium ${filter === "manual" ? "text-primary-foreground" : "text-muted-foreground"}`}
+            >
+              Manual
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="filter-imported"
+            onPress={() => handleFilterChange("imported")}
+            className={`rounded-full px-3 py-1 ${filter === "imported" ? "bg-primary" : "bg-muted"}`}
+          >
+            <Text
+              className={`text-xs font-medium ${filter === "imported" ? "text-primary-foreground" : "text-muted-foreground"}`}
+            >
+              Imported
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </>
   );
 

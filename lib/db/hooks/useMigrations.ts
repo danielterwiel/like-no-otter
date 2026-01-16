@@ -122,6 +122,8 @@ const SAFE_MIGRATIONS = [
   `ALTER TABLE tasks ADD COLUMN ticktick_etag TEXT`,
   `ALTER TABLE tasks ADD COLUMN modified_at INTEGER`,
   `ALTER TABLE tasks ADD COLUMN is_deleted INTEGER DEFAULT 0`,
+  // Migration 006: Add source column to workouts table for tracking origin (manual, strong, healthkit)
+  `ALTER TABLE workouts ADD COLUMN source TEXT DEFAULT 'manual'`,
 ];
 
 export function useMigrations() {

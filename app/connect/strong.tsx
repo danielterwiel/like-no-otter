@@ -1,18 +1,40 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, Platform, ActivityIndicator, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
+import { Card, CardContent } from "@/components/ui/card";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import { parseStrongCSV, type StrongParseResult } from "@/lib/integrations/strong";
+import { getStrongImportStats, type StrongImportStats } from "@/lib/db/queries/workouts";
 
 type ScreenState = "initial" | "parsing" | "error";
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 export default function StrongConnectScreen() {
   const router = useRouter();
   const [screenState, setScreenState] = useState<ScreenState>("initial");
   const [error, setError] = useState<string | null>(null);
+  const [importStats, setImportStats] = useState<StrongImportStats | null>(null);
+
+  // Load import stats when screen focuses
+  useFocusEffect(
+    useCallback(() => {
+      async function loadStats() {
+        const stats = await getStrongImportStats();
+        setImportStats(stats);
+      }
+      loadStats();
+    }, []),
+  );
 
   if (Platform.OS === "web") {
     return (
@@ -129,6 +151,29 @@ export default function StrongConnectScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Import History */}
+      {importStats && importStats.totalWorkouts > 0 && (
+        <Card testID="strong-import-history" className="mb-6">
+          <CardContent className="py-4">
+            <View className="flex-row items-center">
+              <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
+              </View>
+              <View className="flex-1">
+                <Text className="font-semibold text-foreground">
+                  {importStats.totalWorkouts} workout{importStats.totalWorkouts !== 1 ? "s" : ""}{" "}
+                  imported
+                </Text>
+                <Text className="text-sm text-muted-foreground">
+                  Last import:{" "}
+                  {importStats.lastImportDate ? formatDate(importStats.lastImportDate) : "Unknown"}
+                </Text>
+              </View>
+            </View>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Error Display */}
       {error && (

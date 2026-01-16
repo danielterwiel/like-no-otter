@@ -1,5 +1,5 @@
 import { View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent } from "@/components/ui/card";
 import type { WorkoutHistoryItem } from "@/lib/db/queries/workouts";
@@ -40,6 +40,28 @@ function formatVolume(volume: number): string {
   return `${Math.round(volume)} lbs`;
 }
 
+function SourceBadge({ source }: { source: WorkoutHistoryItem["source"] }) {
+  if (source === "manual") return null;
+
+  const isStrong = source === "strong";
+
+  return (
+    <View
+      testID={`workout-source-badge-${source}`}
+      className="ml-2 flex-row items-center rounded-full bg-blue-500/10 px-2 py-0.5"
+    >
+      {isStrong ? (
+        <MaterialCommunityIcons name="dumbbell" size={12} color="#2196F3" />
+      ) : (
+        <Ionicons name="heart" size={12} color="#ef4444" />
+      )}
+      <Text className="ml-1 text-xs font-medium text-blue-500">
+        {isStrong ? "Strong" : "HealthKit"}
+      </Text>
+    </View>
+  );
+}
+
 export function WorkoutCard({ workout, onPress, testID }: WorkoutCardProps) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7} testID={testID}>
@@ -47,10 +69,13 @@ export function WorkoutCard({ workout, onPress, testID }: WorkoutCardProps) {
         <CardContent className="py-3">
           <View className="flex-row items-center justify-between">
             <View className="flex-1">
-              {/* Date */}
-              <Text className="text-base font-semibold text-foreground">
-                {formatDate(workout.startTime)}
-              </Text>
+              {/* Date and Source Badge */}
+              <View className="flex-row items-center">
+                <Text className="text-base font-semibold text-foreground">
+                  {formatDate(workout.startTime)}
+                </Text>
+                <SourceBadge source={workout.source} />
+              </View>
 
               {/* Stats row */}
               <View className="mt-1 flex-row items-center gap-4">

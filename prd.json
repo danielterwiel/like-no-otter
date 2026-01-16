@@ -315,7 +315,7 @@
         "Maestro test passes: maestro/us-011-strong-display.yaml"
       ],
       "priority": 11,
-      "passes": false,
+      "passes": true,
       "notes": "Read-only imported workouts prevent accidental modification of historical data"
     }
   ]

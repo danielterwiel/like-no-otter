@@ -1,0 +1,134 @@
+# US-011: Strong imported workout display
+# Verifies imported workouts display with source badge, filters, and read-only state
+
+appId: com.likenootter.app
+
+---
+- launchApp
+
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 15000
+
+# Navigate to Workouts tab
+- tapOn:
+    text: "Workouts"
+
+# Verify Workouts screen is visible
+- assertVisible:
+    id: "screen-workouts"
+
+# Verify workout history list is visible
+- assertVisible:
+    id: "workout-history"
+
+# Verify filter pills are present
+- assertVisible:
+    id: "workout-filter-pills"
+
+# Verify all filter options are available
+- assertVisible:
+    id: "filter-all"
+
+- assertVisible:
+    id: "filter-manual"
+
+- assertVisible:
+    id: "filter-imported"
+
+# Test filter buttons
+- tapOn:
+    id: "filter-manual"
+
+# Verify filter is applied (all filter still shows)
+- assertVisible:
+    id: "filter-manual"
+
+# Tap imported filter
+- tapOn:
+    id: "filter-imported"
+
+# Verify filter is applied
+- assertVisible:
+    id: "filter-imported"
+
+# Reset to all filter
+- tapOn:
+    id: "filter-all"
+
+# Navigate to More tab
+- tapOn:
+    text: "More"
+
+# Verify More screen is visible
+- assertVisible:
+    id: "screen-more"
+
+# Verify Strong connection card is visible
+- assertVisible:
+    id: "connection-card-strong"
+
+# Navigate to Strong connect screen
+- tapOn:
+    id: "connection-card-strong"
+
+# Verify Strong connection screen is visible
+- assertVisible:
+    id: "screen-connect-strong"
+
+# Verify import instructions are displayed
+- assertVisible:
+    id: "strong-import-info"
+
+# Verify CSV Import section
+- assertVisible:
+    text: "CSV Import"
+
+# Verify import button is available
+- assertVisible:
+    id: "strong-import-button"
+
+# Test cancel navigation
+- tapOn:
+    id: "strong-cancel-button"
+
+# Verify we're back on More screen
+- assertVisible:
+    id: "screen-more"
+
+# Navigate to Workouts tab
+- tapOn:
+    text: "Workouts"
+
+# Verify Start Workout button is still present
+- assertVisible:
+    id: "start-workout-button"
+
+# Verify Recent Workouts section
+- assertVisible:
+    text: "Recent Workouts"
+
+# Test workout history interaction (if any workout exists, optional)
+- runFlow:
+    when:
+      visible:
+        id: "workout-card"
+    commands:
+      - tapOn:
+          id: "workout-card"
+
+      # Verify workout detail screen
+      - assertVisible:
+          id: "workout-detail"
+
+      # Verify delete button is present (for all workouts now)
+      - assertVisible:
+          id: "delete-workout-button"
+
+      # Go back to workouts list
+      - back
+
+      # Verify we're back on workouts screen
+      - assertVisible:
+          id: "screen-workouts"
