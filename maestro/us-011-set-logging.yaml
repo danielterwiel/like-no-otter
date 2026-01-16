@@ -6,38 +6,112 @@ appId: com.likenootter.app
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
-# Navigate to active workout (when implemented)
+# Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Start a workout
+- extendedWaitUntil:
+    visible:
+      id: "screen-workouts"
+    timeout: 5000
+
+# Start workout setup
 - tapOn:
     id: "start-workout-button"
-    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-workout-setup"
+    timeout: 5000
+
+# Search for an exercise
+- tapOn:
+    id: "exercise-search-input"
+
+- inputText: "Bench"
+
+# Add exercise to queue
+- tapOn:
+    text: "Barbell Bench Press"
+
+# Start the workout
+- tapOn:
+    id: "start-workout-action"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-active-workout"
+    timeout: 5000
+
+# Verify set logging card is visible
+- assertVisible:
+    id: "set-logging-card"
 
 # Enter weight
 - tapOn:
-    id: "weight-input"
-    optional: true
+    id: "set-input-weight"
 
 - inputText: "135"
 
 # Enter reps
 - tapOn:
-    id: "reps-input"
-    optional: true
+    id: "set-input-reps"
 
 - inputText: "10"
 
-# Save the set
+# Add the set
 - tapOn:
-    text: "Add Set"
-    optional: true
+    id: "set-input-add-button"
 
 # Verify set appears in list
 - assertVisible:
-    text: "135"
-    optional: true
+    id: "set-row-0"
+
+- assertVisible:
+    text: "135 lbs"
+
+- assertVisible:
+    text: "10 reps"
+
+# Add another set with warmup
+- tapOn:
+    id: "set-input-weight"
+
+- inputText: "95"
+
+- tapOn:
+    id: "set-input-reps"
+
+- inputText: "8"
+
+# Toggle warmup
+- tapOn:
+    id: "set-input-warmup-toggle"
+
+# Add the warmup set
+- tapOn:
+    id: "set-input-add-button"
+
+# Verify second set appears
+- assertVisible:
+    id: "set-row-1"
+
+- assertVisible:
+    text: "Warmup"
+
+# Delete a set
+- tapOn:
+    id: "set-row-0-delete"
+
+# Verify set was deleted (first set should now be the warmup)
+- assertVisible:
+    text: "95 lbs"
+
+# Cancel workout to clean up
+- tapOn:
+    id: "cancel-workout-button"

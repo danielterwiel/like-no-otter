@@ -27,6 +27,14 @@ export type WorkoutEvent =
   | { type: "NEXT_EXERCISE" }
   | { type: "PREVIOUS_EXERCISE" }
   | { type: "GO_TO_EXERCISE"; index: number }
+  | {
+      type: "ADD_SET";
+      exerciseIndex: number;
+      weight: number | null;
+      reps: number | null;
+      isWarmup: boolean;
+    }
+  | { type: "DELETE_SET"; exerciseIndex: number; setIndex: number }
   | { type: "FINISH" }
   | { type: "CANCEL" };
 
@@ -98,6 +106,46 @@ export const workoutMachine = setup({
           actions: assign({
             currentExerciseIndex: ({ event, context }) =>
               Math.max(0, Math.min(event.index, context.exercises.length - 1)),
+          }),
+        },
+        ADD_SET: {
+          actions: assign({
+            exercises: ({ context, event }) => {
+              const exercises = [...context.exercises];
+              const exerciseState = exercises[event.exerciseIndex];
+              if (exerciseState) {
+                const newSet: WorkoutSet = {
+                  setNumber: exerciseState.sets.length + 1,
+                  weight: event.weight,
+                  reps: event.reps,
+                  isWarmup: event.isWarmup,
+                  completedAt: new Date(),
+                };
+                exercises[event.exerciseIndex] = {
+                  ...exerciseState,
+                  sets: [...exerciseState.sets, newSet],
+                };
+              }
+              return exercises;
+            },
+          }),
+        },
+        DELETE_SET: {
+          actions: assign({
+            exercises: ({ context, event }) => {
+              const exercises = [...context.exercises];
+              const exerciseState = exercises[event.exerciseIndex];
+              if (exerciseState && exerciseState.sets[event.setIndex]) {
+                const newSets = exerciseState.sets
+                  .filter((_, i) => i !== event.setIndex)
+                  .map((set, i) => ({ ...set, setNumber: i + 1 }));
+                exercises[event.exerciseIndex] = {
+                  ...exerciseState,
+                  sets: newSets,
+                };
+              }
+              return exercises;
+            },
           }),
         },
         FINISH: {

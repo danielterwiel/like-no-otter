@@ -384,3 +384,38 @@ Completed:
   - Tests full flow: Workouts tab -> Start Workout -> add exercise -> start -> verify timer, card, buttons
   - Tests cancel returns to workouts screen
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-011 - Set logging
+
+Completed:
+- Added ADD_SET and DELETE_SET events to lib/workout/workoutMachine.ts:
+  - ADD_SET: Creates new WorkoutSet with weight, reps, isWarmup, setNumber, completedAt
+  - DELETE_SET: Removes set at index and renumbers remaining sets
+  - Events update exercises array in context immutably
+- Created components/workout/SetRow.tsx:
+  - Displays set number in circular badge
+  - Shows warmup tag when isWarmup is true
+  - Displays weight (lbs) and reps with icons
+  - Delete button with trash icon to remove set
+  - testID props for E2E testing
+- Created components/workout/SetInput.tsx:
+  - Weight input (decimal-pad keyboard) with lbs label
+  - Reps input (number-pad keyboard)
+  - Warmup set toggle checkbox
+  - Add Set button (disabled when no weight or reps entered)
+  - Clears inputs after adding set
+  - testID props for all interactive elements
+- Created components/workout/index.ts to export SetRow and SetInput
+- Updated app/workout/active.tsx:
+  - Added "Log Sets" card below current exercise card
+  - Displays previous sets using SetRow components
+  - SetInput for entering new sets
+  - Wired ADD_SET and DELETE_SET events to machine via send()
+- Updated maestro/us-011-set-logging.yaml with full E2E test flow:
+  - Navigate to Workouts tab, start workout setup
+  - Search and add exercise, start active workout
+  - Enter weight/reps, add set, verify displayed
+  - Add warmup set, verify warmup tag
+  - Delete set, verify deletion
+  - Cancel workout to clean up
+- All checks pass: npm run check (format, lint, types, tests, audit)

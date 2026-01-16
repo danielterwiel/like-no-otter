@@ -5,6 +5,7 @@ import { useMachine } from "@xstate/react";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SetRow, SetInput } from "@/components/workout";
 import { workoutMachine, formatDuration, type WorkoutExerciseState } from "@/lib/workout";
 import type { ExerciseRecord } from "@/lib/db";
 
@@ -103,6 +104,52 @@ export default function ActiveWorkoutScreen() {
                 <Text className="text-center text-sm text-muted-foreground">
                   Previous workout data will appear here
                 </Text>
+              </View>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Set Logging Section */}
+        {currentExercise && (
+          <Card testID="set-logging-card" className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-lg">Log Sets</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {/* Previous sets list */}
+              {currentExercise.sets.length > 0 && (
+                <View testID="sets-list" className="mb-4">
+                  {currentExercise.sets.map((set, index) => (
+                    <SetRow
+                      key={`set-${set.setNumber}-${index}`}
+                      testID={`set-row-${index}`}
+                      set={set}
+                      onDelete={() =>
+                        send({
+                          type: "DELETE_SET",
+                          exerciseIndex: state.context.currentExerciseIndex,
+                          setIndex: index,
+                        })
+                      }
+                    />
+                  ))}
+                </View>
+              )}
+
+              {/* Set input form */}
+              <View className="p-4 pt-0">
+                <SetInput
+                  testID="set-input"
+                  onAddSet={(weight, reps, isWarmup) =>
+                    send({
+                      type: "ADD_SET",
+                      exerciseIndex: state.context.currentExerciseIndex,
+                      weight,
+                      reps,
+                      isWarmup,
+                    })
+                  }
+                />
               </View>
             </CardContent>
           </Card>
