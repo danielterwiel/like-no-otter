@@ -419,3 +419,49 @@ Completed:
   - Delete set, verify deletion
   - Cancel workout to clean up
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-012 - Rest timer with skip
+
+Completed:
+- Installed expo-haptics for vibration/haptic feedback on timer completion
+- Updated lib/workout/workoutMachine.ts with rest timer state management:
+  - Added DEFAULT_REST_DURATION (90s), MIN_REST_DURATION (30s), MAX_REST_DURATION (300s) constants
+  - Added restDurationSeconds and restRemainingSeconds to WorkoutContext
+  - Added new events: REST_TICK, SKIP_REST, REST_COMPLETE, SET_REST_DURATION
+  - Added restTimerActor (fromCallback) that ticks every second
+  - Added "resting" state that:
+    - Invokes both workout timer and rest timer actors in parallel
+    - Handles REST_TICK to decrement countdown, auto-transitions to "active" when reaches 0
+    - Handles SKIP_REST to immediately end rest and return to "active"
+    - Allows exercise navigation (NEXT_EXERCISE, PREVIOUS_EXERCISE, GO_TO_EXERCISE) which cancels rest
+    - Supports DELETE_SET, FINISH, CANCEL events during rest
+  - Modified ADD_SET to transition to "resting" state and set restRemainingSeconds
+  - Added formatRestTime() helper for MM:SS format
+- Updated lib/workout/index.ts to export new constants and formatRestTime function
+- Created components/workout/RestTimer.tsx:
+  - Displays countdown in MM:SS format with testID="rest-timer-countdown"
+  - Shows progress bar indicating elapsed rest time
+  - "Skip Rest" button to immediately end timer
+  - Timer icon and "Rest Timer" label
+  - Uses expo-haptics for:
+    - NotificationFeedbackType.Success when timer completes
+    - ImpactFeedbackStyle.Light when skip button pressed
+  - Platform check to skip haptics on web
+  - Styled with primary color border and background
+- Updated components/workout/index.ts to export RestTimer
+- Updated app/workout/active.tsx:
+  - Added RestTimer import
+  - Added handleSkipRest callback that sends SKIP_REST event
+  - Added isResting computed value from state.matches("resting")
+  - RestTimer component displays at top of ScrollView when resting
+  - Props: remainingSeconds, totalSeconds, onSkip from machine context
+- Updated maestro/us-012-rest-timer.yaml with full E2E test flow:
+  - Navigate to Workouts tab, start workout setup
+  - Search and add exercise, start active workout
+  - Log a set with weight/reps to trigger rest timer
+  - Verify rest timer and countdown are visible
+  - Verify Skip Rest button is available
+  - Test skip functionality and verify timer disappears
+  - Log another set to verify rest timer appears again
+  - Cancel workout to clean up
+- All checks pass: npm run check (format, lint, types, tests, audit)

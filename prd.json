@@ -281,7 +281,7 @@
         "Maestro test passes: maestro/us-012-rest-timer.yaml"
       ],
       "priority": 12,
-      "passes": false,
+      "passes": true,
       "notes": "Use Expo Haptics for timer completion"
     },
     {

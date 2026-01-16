@@ -6,25 +6,117 @@ appId: com.likenootter.app
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
-# Navigate to active workout (when implemented)
+# Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Assume workout is in progress and set was just completed
-# Verify rest timer appears
-- assertVisible:
-    id: "rest-timer"
-    optional: true
+# Wait for Workouts screen to load
+- extendedWaitUntil:
+    visible:
+      id: "screen-workouts"
+    timeout: 5000
 
-# Verify skip button is available
+# Tap Start Workout to open setup modal
+- tapOn:
+    text: "Start Workout"
+
+# Wait for setup screen
+- extendedWaitUntil:
+    visible:
+      id: "screen-workout-setup"
+    timeout: 5000
+
+# Search for an exercise
+- tapOn:
+    id: "exercise-search-input"
+
+- inputText: "Bench"
+
+# Wait for search results
+- extendedWaitUntil:
+    visible:
+      text: "Barbell Bench Press"
+    timeout: 3000
+
+# Add exercise to queue
+- tapOn:
+    text: "Barbell Bench Press"
+
+# Start the workout
+- tapOn:
+    text: "Start Workout"
+
+# Wait for active workout screen
+- extendedWaitUntil:
+    visible:
+      id: "screen-active-workout"
+    timeout: 5000
+
+# Verify workout timer is visible
+- assertVisible:
+    id: "workout-timer"
+
+# Log a set to trigger rest timer
+- tapOn:
+    id: "set-input-weight"
+
+- inputText: "135"
+
+- tapOn:
+    id: "set-input-reps"
+
+- inputText: "10"
+
+- tapOn:
+    id: "set-input-add-button"
+
+# Wait for rest timer to appear
+- extendedWaitUntil:
+    visible:
+      id: "rest-timer"
+    timeout: 3000
+
+# Verify rest timer countdown is visible
+- assertVisible:
+    id: "rest-timer-countdown"
+
+# Verify Skip Rest button is available
 - assertVisible:
     text: "Skip Rest"
-    optional: true
 
 # Test skip functionality
 - tapOn:
     text: "Skip Rest"
-    optional: true
+
+# Rest timer should disappear after skip
+- assertNotVisible:
+    id: "rest-timer"
+
+# Log another set to verify rest timer appears again
+- tapOn:
+    id: "set-input-weight"
+
+- inputText: "135"
+
+- tapOn:
+    id: "set-input-reps"
+
+- inputText: "8"
+
+- tapOn:
+    id: "set-input-add-button"
+
+# Verify rest timer appears again
+- extendedWaitUntil:
+    visible:
+      id: "rest-timer"
+    timeout: 3000
+
+# Cancel workout to clean up
+- tapOn:
+    id: "cancel-workout-button"

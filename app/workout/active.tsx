@@ -5,7 +5,7 @@ import { useMachine } from "@xstate/react";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SetRow, SetInput } from "@/components/workout";
+import { SetRow, SetInput, RestTimer } from "@/components/workout";
 import { workoutMachine, formatDuration, type WorkoutExerciseState } from "@/lib/workout";
 import type { ExerciseRecord } from "@/lib/db";
 
@@ -39,6 +39,12 @@ export default function ActiveWorkoutScreen() {
     send({ type: "CANCEL" });
     router.back();
   }, [send, router]);
+
+  const handleSkipRest = useCallback(() => {
+    send({ type: "SKIP_REST" });
+  }, [send]);
+
+  const isResting = state.matches("resting");
 
   const currentExercise: WorkoutExerciseState | undefined =
     state.context.exercises[state.context.currentExerciseIndex];
@@ -78,6 +84,16 @@ export default function ActiveWorkoutScreen() {
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="p-4">
+        {/* Rest Timer - shown when resting */}
+        {isResting && (
+          <RestTimer
+            testID="rest-timer"
+            remainingSeconds={state.context.restRemainingSeconds}
+            totalSeconds={state.context.restDurationSeconds}
+            onSkip={handleSkipRest}
+          />
+        )}
+
         {/* Current Exercise Card */}
         {currentExercise && (
           <Card testID="current-exercise-card" className="mb-4">
