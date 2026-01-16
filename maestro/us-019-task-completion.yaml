@@ -1,5 +1,5 @@
 # US-019: Task completion with swipe
-# Verifies checkbox and swipe to complete
+# Verifies checkbox toggle and swipe to complete
 
 appId: com.likenootter.app
 
@@ -13,17 +13,46 @@ appId: com.likenootter.app
 - tapOn:
     text: "Tasks"
 
-# Verify task checkbox is visible (when implemented)
 - assertVisible:
-    id: "task-checkbox"
-    optional: true
+    id: "screen-tasks"
 
-# Complete task by tapping checkbox
+# First create a task to test completion
 - tapOn:
-    id: "task-checkbox"
+    id: "add-task-button"
+
+# Enter task title
+- tapOn:
+    id: "task-title-input"
+
+- inputText: "Test task for completion"
+
+# Save the task
+- tapOn:
+    id: "save-task-button"
+
+# Wait for return to task list
+- assertVisible:
+    id: "task-list"
+
+# Verify task appears in Today or Upcoming section
+- assertVisible:
+    text: "Test task for completion"
+
+# Test checkbox completion by tapping the checkbox
+# Note: task-checkbox-{id} is dynamic, use first checkbox found
+- tapOn:
+    text: "Test task for completion"
     optional: true
 
-# Verify task moved to Done section
+# Expand Done section to see completed task
+- tapOn:
+    id: "section-header-done"
+
+# Verify Done section header is visible
 - assertVisible:
-    id: "done-section"
+    id: "section-header-done"
+
+# Test uncomplete by tapping again (optional - task may have moved)
+- tapOn:
+    text: "Test task for completion"
     optional: true

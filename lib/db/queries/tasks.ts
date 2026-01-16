@@ -215,3 +215,53 @@ export async function getTasksBySection(): Promise<TasksBySection> {
     return { today: [], upcoming: [], done: [] };
   }
 }
+
+export interface ToggleTaskResult {
+  success: boolean;
+  isCompleted?: boolean;
+  error?: string;
+}
+
+/**
+ * Toggle task completion status
+ * If task is incomplete, mark it complete with timestamp
+ * If task is complete, mark it incomplete and clear timestamp
+ */
+export async function toggleTaskCompletion(taskId: number): Promise<ToggleTaskResult> {
+  if (IS_WEB) {
+    return { success: false, error: "Tasks not available on web" };
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    // Get current status
+    const task = db.getFirstSync<TaskRow>(`SELECT * FROM tasks WHERE id = ?`, taskId);
+
+    if (!task) {
+      return { success: false, error: "Task not found" };
+    }
+
+    const newIsCompleted = task.is_completed === 0;
+    const completedAt = newIsCompleted ? Date.now() : null;
+
+    db.runSync(
+      `UPDATE tasks SET is_completed = ?, completed_at = ? WHERE id = ?`,
+      newIsCompleted ? 1 : 0,
+      completedAt,
+      taskId,
+    );
+
+    return {
+      success: true,
+      isCompleted: newIsCompleted,
+    };
+  } catch (error) {
+    console.error("Failed to toggle task completion:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}

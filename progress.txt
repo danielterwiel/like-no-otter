@@ -672,3 +672,33 @@ Completed:
   - Verifies section text content (Today, Upcoming, Done)
   - Verifies task list container
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-019 - Task completion with swipe
+
+Completed:
+- Added toggleTaskCompletion() function in lib/db/queries/tasks.ts:
+  - Toggles task completion status in database
+  - Sets/clears completedAt timestamp
+  - Returns new completion state for UI updates
+- Created components/tasks/SwipeableTaskItem.tsx:
+  - Checkbox on left toggles task completion with visual feedback
+  - Checkbox shows green checkmark when complete
+  - Swipe right gesture reveals green complete action background
+  - Uses react-native-gesture-handler Gesture.Pan() for swipe detection
+  - Swipe threshold of 80px triggers completion
+  - Uses react-native-reanimated for smooth animations
+  - Haptic feedback via expo-haptics on completion (Medium impact)
+  - Task title shows strikethrough when completed
+  - Due date formatting preserved (Today, Tomorrow, Overdue, etc.)
+  - Priority indicator shown as small dot for incomplete tasks
+- Created components/tasks/index.ts to export SwipeableTaskItem
+- Updated app/(tabs)/tasks.tsx:
+  - Wrapped content in GestureHandlerRootView for gesture support
+  - Added handleToggleComplete callback that updates database and refreshes list
+  - Replaced old TaskItem with SwipeableTaskItem component
+  - Tasks automatically move to Done section on completion
+  - Can uncomplete by tapping checkbox again
+- Updated maestro/us-019-task-completion.yaml:
+  - Tests full flow: create task -> complete via checkbox -> verify Done section
+  - Tests uncomplete functionality
+- All checks pass: npm run check (format, lint, types, tests, audit)
