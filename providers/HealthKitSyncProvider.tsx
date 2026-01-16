@@ -9,6 +9,7 @@ import {
 } from "react";
 import { AppState, type AppStateStatus, Platform } from "react-native";
 import { syncHealthData, type SyncResult } from "@/lib/health/sync";
+import { retrySyncUnsyncedWorkouts } from "@/lib/db/queries/workouts";
 import { invalidateHealthQueries } from "./QueryProvider";
 import { useHealthKit } from "./HealthKitProvider";
 
@@ -60,12 +61,19 @@ export function HealthKitSyncProvider({ children }: HealthKitSyncProviderProps) 
     setIsSyncing(true);
 
     try {
+      // Sync health data from HealthKit to SQLite
       const result = await syncHealthData();
       setLastSyncResult(result);
 
       // Invalidate TanStack Query cache if sync was successful
       if (result.success && result.recordsInserted > 0) {
         invalidateHealthQueries();
+      }
+
+      // Retry syncing any unsynced workouts to HealthKit
+      const retryResult = await retrySyncUnsyncedWorkouts();
+      if (retryResult.synced > 0) {
+        console.log(`Synced ${retryResult.synced} workouts to HealthKit`);
       }
 
       return result;

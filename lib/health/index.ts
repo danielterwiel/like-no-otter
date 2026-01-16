@@ -19,3 +19,9 @@ export {
   type RHRTrendPoint,
 } from "./queries";
 export { syncHealthData, type SyncResult } from "./sync";
+export {
+  saveWorkoutToHealthKit,
+  estimateCaloriesBurned,
+  type SaveWorkoutToHealthKitInput,
+  type SaveWorkoutToHealthKitResult,
+} from "./workoutWriter";

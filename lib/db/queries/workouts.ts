@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import type { WorkoutExerciseState } from "@/lib/workout";
 import type { MuscleGroup } from "@/constants/exercises";
+import { saveWorkoutToHealthKit } from "@/lib/health";
 
 const ALL_MUSCLE_GROUPS: MuscleGroup[] = [
   "chest",
@@ -41,6 +42,7 @@ export interface SaveWorkoutResult {
   success: boolean;
   workoutId?: number;
   error?: string;
+  healthKitSynced?: boolean;
 }
 
 /**
@@ -364,7 +366,30 @@ export async function saveWorkout(input: SaveWorkoutInput): Promise<SaveWorkoutR
       }
     });
 
-    return { success: true, workoutId };
+    // Try to sync to HealthKit (non-blocking, fails silently)
+    let healthKitSynced = false;
+    if (workoutId) {
+      const healthKitResult = await saveWorkoutToHealthKit({
+        startTime: input.startTime,
+        endTime: input.endTime,
+      });
+
+      if (healthKitResult.success) {
+        healthKitSynced = true;
+        // Mark as synced in database
+        try {
+          const dbForUpdate = SQLite.openDatabaseSync(DATABASE_NAME);
+          dbForUpdate.runSync(
+            `UPDATE workouts SET synced_to_healthkit = 1 WHERE id = ?`,
+            workoutId,
+          );
+        } catch (e) {
+          console.error("Failed to mark workout synced:", e);
+        }
+      }
+    }
+
+    return { success: true, workoutId, healthKitSynced };
   } catch (error) {
     console.error("Failed to save workout:", error);
     return {
@@ -417,6 +442,98 @@ const MUSCLE_LABELS: Record<MuscleGroup, string> = {
   calves: "Calves",
   abs: "Abs",
 };
+
+/**
+ * Workout record for HealthKit sync retry
+ */
+export interface UnsyncedWorkout {
+  id: number;
+  startTime: Date;
+  endTime: Date;
+  durationSeconds: number;
+}
+
+/**
+ * Get workouts that haven't been synced to HealthKit yet
+ */
+export async function getUnsyncedWorkouts(): Promise<UnsyncedWorkout[]> {
+  if (IS_WEB) {
+    return [];
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    const workouts = db.getAllSync<{
+      id: number;
+      start_time: number;
+      end_time: number;
+      duration_seconds: number;
+    }>(
+      `SELECT id, start_time, end_time, duration_seconds
+       FROM workouts
+       WHERE synced_to_healthkit = 0
+       ORDER BY start_time ASC`,
+    );
+
+    return workouts.map((w) => ({
+      id: w.id,
+      startTime: new Date(w.start_time * 1000),
+      endTime: new Date(w.end_time * 1000),
+      durationSeconds: w.duration_seconds,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch unsynced workouts:", error);
+    return [];
+  }
+}
+
+/**
+ * Mark a workout as synced to HealthKit
+ */
+export async function markWorkoutSynced(workoutId: number): Promise<boolean> {
+  if (IS_WEB) {
+    return false;
+  }
+
+  try {
+    const SQLite = await import("expo-sqlite");
+    const db = SQLite.openDatabaseSync(DATABASE_NAME);
+
+    db.runSync(`UPDATE workouts SET synced_to_healthkit = 1 WHERE id = ?`, workoutId);
+    return true;
+  } catch (error) {
+    console.error("Failed to mark workout synced:", error);
+    return false;
+  }
+}
+
+/**
+ * Retry syncing unsynced workouts to HealthKit
+ * Called on app launch to retry failed writes
+ */
+export async function retrySyncUnsyncedWorkouts(): Promise<{ synced: number; failed: number }> {
+  const unsyncedWorkouts = await getUnsyncedWorkouts();
+  let synced = 0;
+  let failed = 0;
+
+  for (const workout of unsyncedWorkouts) {
+    const result = await saveWorkoutToHealthKit({
+      startTime: workout.startTime,
+      endTime: workout.endTime,
+    });
+
+    if (result.success) {
+      await markWorkoutSynced(workout.id);
+      synced++;
+    } else {
+      failed++;
+    }
+  }
+
+  return { synced, failed };
+}
 
 /**
  * Get muscle frequency data aggregated from last 4 weeks

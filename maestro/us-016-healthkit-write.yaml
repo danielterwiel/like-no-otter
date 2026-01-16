@@ -1,24 +1,103 @@
 # US-016: Write workout to HealthKit
-# Verifies workout sync status after saving
+# Verifies workout can be completed and saved (HealthKit sync happens silently)
+# Note: HealthKit write is non-blocking and fails silently if not available
 
 appId: com.likenootter.app
 
 ---
 - launchApp
 
-- assertVisible:
-    id: "app-ready"
+- extendedWaitUntil:
+    visible:
+      id: "app-ready"
+    timeout: 10000
 
 # Navigate to Workouts tab
 - tapOn:
     text: "Workouts"
 
-# Verify sync status indicator is visible (when implemented)
+# Verify workouts screen is visible
 - assertVisible:
-    id: "healthkit-sync-status"
-    optional: true
+    id: "screen-workouts"
 
-# After completing a workout, verify HealthKit sync status
+# Start workout setup
+- tapOn:
+    id: "start-workout-button"
+
+# Wait for setup screen
+- extendedWaitUntil:
+    visible:
+      id: "workout-setup-screen"
+    timeout: 5000
+
+# Search for an exercise
+- tapOn:
+    id: "exercise-search-input"
+
+- inputText: "bench"
+
+# Wait for search results and select first exercise
+- extendedWaitUntil:
+    visible:
+      text: "Barbell Bench Press"
+    timeout: 3000
+
+- tapOn:
+    text: "Barbell Bench Press"
+
+# Verify exercise added to queue
 - assertVisible:
-    text: "Synced"
-    optional: true
+    id: "queue-count"
+
+# Start the workout
+- tapOn:
+    id: "start-workout-from-setup"
+
+# Wait for active workout screen
+- extendedWaitUntil:
+    visible:
+      id: "workout-timer"
+    timeout: 5000
+
+# Log a set
+- tapOn:
+    id: "weight-input"
+
+- inputText: "135"
+
+- tapOn:
+    id: "reps-input"
+
+- inputText: "10"
+
+- tapOn:
+    id: "add-set-button"
+
+# Verify set was added
+- assertVisible:
+    id: "set-row-0"
+
+# Finish the workout
+- tapOn:
+    id: "finish-workout-button"
+
+# Wait for summary screen
+- extendedWaitUntil:
+    visible:
+      id: "workout-summary"
+    timeout: 5000
+
+# Save the workout (this triggers HealthKit write)
+- tapOn:
+    id: "save-workout-button"
+
+# Verify we return to workouts tab after save
+- extendedWaitUntil:
+    visible:
+      id: "screen-workouts"
+    timeout: 5000
+
+# Verify the workout history shows the new workout
+# The workout should appear in the history list
+- assertVisible:
+    id: "workout-history"

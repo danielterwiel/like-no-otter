@@ -570,3 +570,33 @@ Completed:
   - Verifies empty state when no workout data
   - Handles web fallback scenario
 - All checks pass: npm run check (format, lint, types, tests, audit)
+
+2026-01-16: US-016 - Write workout to HealthKit
+
+Completed:
+- Created lib/health/workoutWriter.ts with HealthKit workout save functionality:
+  - saveWorkoutToHealthKit(): saves completed workout to Apple HealthKit
+  - Uses react-native-health saveWorkout method with TraditionalStrengthTraining type
+  - Includes start time and end time in HKWorkout record
+  - Fails silently (returns success: false) without blocking user flow
+  - Platform check to skip on non-iOS platforms
+  - estimateCaloriesBurned(): utility to estimate workout calories (~5 cal/min)
+- Updated lib/health/index.ts to export new functions and types
+- Updated lib/db/queries/workouts.ts:
+  - Added healthKitSynced field to SaveWorkoutResult interface
+  - Modified saveWorkout() to call saveWorkoutToHealthKit after database save
+  - Marks workout as synced (synced_to_healthkit = 1) on successful HealthKit write
+  - Added getUnsyncedWorkouts(): fetches workouts not yet synced to HealthKit
+  - Added markWorkoutSynced(): updates synced_to_healthkit flag
+  - Added retrySyncUnsyncedWorkouts(): retries failed writes, returns sync/fail counts
+- Updated providers/HealthKitSyncProvider.tsx:
+  - Calls retrySyncUnsyncedWorkouts() on app foreground/launch
+  - Retries syncing any workouts that failed initial HealthKit write
+  - Logs successful retry count for debugging
+- Updated app/workout/summary.tsx:
+  - Tracks HealthKit sync status after save (for future UI use)
+- Updated maestro/us-016-healthkit-write.yaml:
+  - Full E2E test flow: workout setup -> active workout -> log set -> finish -> save
+  - Verifies workout appears in history after save
+  - Tests complete workout flow that triggers HealthKit write
+- All checks pass: npm run check (format, lint, types, tests, audit)

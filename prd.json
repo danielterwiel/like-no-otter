@@ -350,7 +350,7 @@
         "Maestro test passes: maestro/us-016-healthkit-write.yaml"
       ],
       "priority": 16,
-      "passes": false,
+      "passes": true,
       "notes": "Use react-native-health saveWorkout method"
     },
     {

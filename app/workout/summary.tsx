@@ -22,6 +22,7 @@ export default function WorkoutSummaryScreen() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [_healthKitSynced, setHealthKitSynced] = useState<boolean | null>(null);
 
   // Parse workout data from params
   const workoutData = useMemo(() => {
@@ -63,6 +64,8 @@ export default function WorkoutSummaryScreen() {
     setIsSaving(false);
 
     if (result.success) {
+      // Track HealthKit sync status before navigating
+      setHealthKitSynced(result.healthKitSynced ?? false);
       // Navigate back to workouts tab
       router.replace("/(tabs)/workouts");
     } else {
