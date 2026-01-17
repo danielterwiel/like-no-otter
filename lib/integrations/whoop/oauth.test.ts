@@ -45,8 +45,8 @@ describe("Whoop OAuth Configuration", () => {
   it("should export correct OAuth URLs", async () => {
     const { WHOOP_AUTH_URL, WHOOP_TOKEN_URL } = await import("./oauth");
 
-    expect(WHOOP_AUTH_URL).toBe("https://api.whoop.com/oauth/oauth2/auth");
-    expect(WHOOP_TOKEN_URL).toBe("https://api.whoop.com/oauth/oauth2/token");
+    expect(WHOOP_AUTH_URL).toBe("https://api.prod.whoop.com/oauth/oauth2/auth");
+    expect(WHOOP_TOKEN_URL).toBe("https://api.prod.whoop.com/oauth/oauth2/token");
   });
 
   it("should export all required OAuth scopes", async () => {
@@ -87,7 +87,7 @@ describe("exchangeWhoopCode", () => {
         redirectUri: "test-redirect-uri",
       }),
       expect.objectContaining({
-        tokenEndpoint: "https://api.whoop.com/oauth/oauth2/token",
+        tokenEndpoint: "https://api.prod.whoop.com/oauth/oauth2/token",
       }),
     );
   });

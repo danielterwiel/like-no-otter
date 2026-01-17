@@ -13,6 +13,7 @@ vi.mock("../auth", () => ({
 
 // Mock the connection manager
 vi.mock("../connection-manager", () => ({
+  getConnection: vi.fn(),
   updateLastSync: vi.fn(),
   setSyncError: vi.fn(),
 }));
@@ -29,7 +30,9 @@ describe("Whoop sync service", () => {
 
   it("returns error when no tokens available", async () => {
     const { getTokens } = await import("../auth");
+    const { getConnection } = await import("../connection-manager");
     vi.mocked(getTokens).mockResolvedValue(null);
+    vi.mocked(getConnection).mockResolvedValue(null);
 
     const { syncWhoopData } = await import("./sync");
     const result = await syncWhoopData();
@@ -40,10 +43,21 @@ describe("Whoop sync service", () => {
 
   it("returns success with record counts on successful sync", async () => {
     const { getTokens } = await import("../auth");
+    const { getConnection } = await import("../connection-manager");
     vi.mocked(getTokens).mockResolvedValue({
       accessToken: "test-token",
       refreshToken: "refresh-token",
       expiresAt: Date.now() + 3600000,
+    });
+    // Mock connection with old last sync to allow sync to proceed
+    vi.mocked(getConnection).mockResolvedValue({
+      id: 1,
+      service: "whoop",
+      status: "connected",
+      connectedAt: new Date(),
+      lastSyncAt: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
+      syncError: null,
+      metadata: null,
     });
 
     // Mock fetch for API calls
@@ -80,10 +94,20 @@ describe("Whoop sync service", () => {
 
   it("handles API errors gracefully", async () => {
     const { getTokens } = await import("../auth");
+    const { getConnection } = await import("../connection-manager");
     vi.mocked(getTokens).mockResolvedValue({
       accessToken: "test-token",
       refreshToken: "refresh-token",
       expiresAt: Date.now() + 3600000,
+    });
+    vi.mocked(getConnection).mockResolvedValue({
+      id: 1,
+      service: "whoop",
+      status: "connected",
+      connectedAt: new Date(),
+      lastSyncAt: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
+      syncError: null,
+      metadata: null,
     });
 
     global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
@@ -97,11 +121,21 @@ describe("Whoop sync service", () => {
 
   it("refreshes token when expired", async () => {
     const { getTokens, saveTokens } = await import("../auth");
+    const { getConnection } = await import("../connection-manager");
     // First call returns expired token, will need refresh
     vi.mocked(getTokens).mockResolvedValue({
       accessToken: "expired-token",
       refreshToken: "refresh-token",
       expiresAt: Date.now() - 1000, // Expired
+    });
+    vi.mocked(getConnection).mockResolvedValue({
+      id: 1,
+      service: "whoop",
+      status: "connected",
+      connectedAt: new Date(),
+      lastSyncAt: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
+      syncError: null,
+      metadata: null,
     });
 
     // Mock the token refresh endpoint
@@ -148,5 +182,38 @@ describe("Whoop sync service", () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toContain("iOS");
+  });
+
+  it("skips sync if synced recently (rate limiting)", async () => {
+    // Reset modules to ensure we're testing with the iOS platform
+    vi.doMock("react-native", () => ({
+      Platform: { OS: "ios" },
+    }));
+    vi.resetModules();
+
+    const { getTokens } = await import("../auth");
+    const { getConnection } = await import("../connection-manager");
+    vi.mocked(getTokens).mockResolvedValue({
+      accessToken: "test-token",
+      refreshToken: "refresh-token",
+      expiresAt: Date.now() + 3600000,
+    });
+    // Mock connection with recent sync (5 minutes ago, less than 10 minute threshold)
+    vi.mocked(getConnection).mockResolvedValue({
+      id: 1,
+      service: "whoop",
+      status: "connected",
+      connectedAt: new Date(),
+      lastSyncAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+      syncError: null,
+      metadata: null,
+    });
+
+    const { syncWhoopData } = await import("./sync");
+    const result = await syncWhoopData();
+
+    expect(result.success).toBe(true);
+    expect(result.error).toContain("Skipped");
+    expect(result.recoveryCount).toBeUndefined();
   });
 });

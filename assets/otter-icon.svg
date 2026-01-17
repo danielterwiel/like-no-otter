@@ -1,0 +1,55 @@
+<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#7C3AED"/>
+
+  <!-- Define pixel size (32x32 grid = 32px per pixel) -->
+  <g id="otter">
+    <!-- Dark brown outer ears -->
+    <rect x="256" y="192" width="64" height="64" fill="#5D4E37"/>
+    <rect x="704" y="192" width="64" height="64" fill="#5D4E37"/>
+
+    <!-- Head (brown) -->
+    <rect x="320" y="256" width="384" height="384" fill="#8B6F47"/>
+
+    <!-- Inner ears (lighter) -->
+    <rect x="288" y="224" width="32" height="32" fill="#A0826D"/>
+    <rect x="704" y="224" width="32" height="32" fill="#A0826D"/>
+
+    <!-- Eyes (black) -->
+    <rect x="384" y="352" width="64" height="64" fill="#000000"/>
+    <rect x="576" y="352" width="64" height="64" fill="#000000"/>
+
+    <!-- Eye highlights (white) -->
+    <rect x="416" y="352" width="32" height="32" fill="#FFFFFF"/>
+    <rect x="608" y="352" width="32" height="32" fill="#FFFFFF"/>
+
+    <!-- Snout (lighter brown) -->
+    <rect x="384" y="448" width="256" height="128" fill="#C8B08A"/>
+
+    <!-- Nose (dark) -->
+    <rect x="480" y="480" width="64" height="64" fill="#3E2723"/>
+
+    <!-- Whisker dots (dark) -->
+    <rect x="352" y="512" width="32" height="32" fill="#5D4E37"/>
+    <rect x="640" y="512" width="32" height="32" fill="#5D4E37"/>
+
+    <!-- Body (brown) -->
+    <rect x="256" y="640" width="512" height="256" fill="#8B6F47"/>
+
+    <!-- Belly (cream) -->
+    <rect x="384" y="672" width="256" height="192" fill="#E8D5B7"/>
+
+    <!-- Arms/Paws -->
+    <rect x="224" y="704" width="96" height="128" fill="#8B6F47"/>
+    <rect x="704" y="704" width="96" height="128" fill="#8B6F47"/>
+
+    <!-- Paw pads (darker) -->
+    <rect x="240" y="800" width="64" height="32" fill="#5D4E37"/>
+    <rect x="720" y="800" width="64" height="32" fill="#5D4E37"/>
+
+    <!-- Cute smile -->
+    <rect x="448" y="544" width="32" height="32" fill="#3E2723"/>
+    <rect x="544" y="544" width="32" height="32" fill="#3E2723"/>
+    <rect x="480" y="560" width="64" height="16" fill="#3E2723"/>
+  </g>
+</svg>

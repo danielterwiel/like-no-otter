@@ -7,4 +7,4 @@ export {
   type ExchangeResult,
 } from "./oauth";
 
-export { syncWhoopData, type SyncWhoopResult } from "./sync";
+export { syncWhoopData, triggerDebouncedSync, isSyncing, type SyncWhoopResult } from "./sync";

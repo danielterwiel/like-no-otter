@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import { getTokens, saveTokens } from "../auth";
-import { updateLastSync, setSyncError } from "../connection-manager";
+import { getConnection, updateLastSync, setSyncError } from "../connection-manager";
 import {
   saveWhoopRecoveryRecords,
   saveWhoopSleepRecords,
@@ -11,8 +11,11 @@ import {
 } from "../../db/queries/whoop";
 
 const IS_IOS = Platform.OS === "ios";
-const WHOOP_API_BASE = "https://api.whoop.com";
-const WHOOP_TOKEN_URL = "https://api.whoop.com/oauth/oauth2/token";
+const WHOOP_API_BASE = "https://api.prod.whoop.com";
+const WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token";
+
+// Minimum time between syncs (10 minutes) to avoid rate limiting
+const MIN_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 
 export interface SyncWhoopResult {
   success: boolean;
@@ -30,7 +33,7 @@ interface WhoopApiResponse<T> {
 
 interface WhoopRecoveryRecord {
   cycle_id: number;
-  sleep_id: number;
+  sleep_id: number | string; // v2 uses UUID for sleep_id
   user_id: number;
   created_at: string;
   updated_at: string;
@@ -46,7 +49,7 @@ interface WhoopRecoveryRecord {
 }
 
 interface WhoopSleepRecord {
-  id: number;
+  id: string; // v2 uses UUID for sleep id
   user_id: number;
   created_at: string;
   updated_at: string;
@@ -167,6 +170,7 @@ async function fetchAllPages<T>(
     const params: Record<string, string> = {
       start: startDate,
       end: endDate,
+      limit: "25", // v2 API max limit for better performance
     };
     if (nextToken) {
       params.nextToken = nextToken;
@@ -190,6 +194,19 @@ export async function syncWhoopData(): Promise<SyncWhoopResult> {
   }
 
   try {
+    // Rate limiting: Check if we synced recently to avoid API rate limits
+    const connection = await getConnection("whoop");
+    if (connection?.lastSyncAt) {
+      const timeSinceLastSync = Date.now() - connection.lastSyncAt.getTime();
+      if (timeSinceLastSync < MIN_SYNC_INTERVAL_MS) {
+        const minutesRemaining = Math.ceil((MIN_SYNC_INTERVAL_MS - timeSinceLastSync) / 60000);
+        return {
+          success: true,
+          error: `Skipped: Last synced ${Math.floor(timeSinceLastSync / 60000)} minutes ago. Next sync in ${minutesRemaining} minutes.`,
+        };
+      }
+    }
+
     // Get tokens from secure storage
     let tokens = await getTokens("whoop");
     if (!tokens) {
@@ -230,11 +247,26 @@ export async function syncWhoopData(): Promise<SyncWhoopResult> {
     const endDate = new Date().toISOString();
     const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    // Fetch all data types in parallel
+    // Fetch all data types in parallel using v2 API
     const [recoveryRecords, sleepRecords, cycleRecords] = await Promise.all([
-      fetchAllPages<WhoopRecoveryRecord>("/v2/recovery", tokens.accessToken, startDate, endDate),
-      fetchAllPages<WhoopSleepRecord>("/v2/activity/sleep", tokens.accessToken, startDate, endDate),
-      fetchAllPages<WhoopCycleRecord>("/v2/cycle", tokens.accessToken, startDate, endDate),
+      fetchAllPages<WhoopRecoveryRecord>(
+        "/developer/v2/recovery",
+        tokens.accessToken,
+        startDate,
+        endDate,
+      ),
+      fetchAllPages<WhoopSleepRecord>(
+        "/developer/v2/activity/sleep",
+        tokens.accessToken,
+        startDate,
+        endDate,
+      ),
+      fetchAllPages<WhoopCycleRecord>(
+        "/developer/v2/cycle",
+        tokens.accessToken,
+        startDate,
+        endDate,
+      ),
     ]);
 
     // Transform and save recovery records
@@ -252,7 +284,7 @@ export async function syncWhoopData(): Promise<SyncWhoopResult> {
     const sleepData: WhoopSleepData[] = sleepRecords
       .filter((s) => !s.nap) // Exclude naps, only count main sleep
       .map((s) => ({
-        whoopId: String(s.id),
+        whoopId: s.id, // v2 returns UUID string, no need to convert
         date: s.start.split("T")[0],
         startTime: new Date(s.start),
         endTime: new Date(s.end),
@@ -317,4 +349,37 @@ export async function syncWhoopData(): Promise<SyncWhoopResult> {
       error: errorMessage,
     };
   }
+}
+
+// Debounced sync support
+let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+let syncPromise: Promise<SyncWhoopResult> | null = null;
+
+/**
+ * Trigger a debounced sync (10 second delay)
+ * Multiple calls within the delay period will only trigger one sync
+ */
+export function triggerDebouncedSync(): void {
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+  }
+
+  syncTimeout = setTimeout(async () => {
+    syncTimeout = null;
+    if (!syncPromise) {
+      syncPromise = syncWhoopData();
+      try {
+        await syncPromise;
+      } finally {
+        syncPromise = null;
+      }
+    }
+  }, 10000); // 10 second debounce to reduce API calls
+}
+
+/**
+ * Check if a sync is currently in progress
+ */
+export function isSyncing(): boolean {
+  return syncPromise !== null;
 }

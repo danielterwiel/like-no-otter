@@ -2,8 +2,8 @@ import { makeRedirectUri, exchangeCodeAsync } from "expo-auth-session";
 import { saveTokens } from "../auth";
 import { updateConnection } from "../connection-manager";
 
-export const WHOOP_AUTH_URL = "https://api.whoop.com/oauth/oauth2/auth";
-export const WHOOP_TOKEN_URL = "https://api.whoop.com/oauth/oauth2/token";
+export const WHOOP_AUTH_URL = "https://api.prod.whoop.com/oauth/oauth2/auth";
+export const WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token";
 
 export const WHOOP_SCOPES = [
   "read:recovery",

@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SourceBadge } from "./SourceBadge";
 import type { WhoopCycleData } from "@/lib/db/queries/whoop";
 
 interface StrainCardProps {
@@ -40,9 +41,7 @@ export function StrainCard({ data, isLoading }: StrainCardProps) {
         <View className="flex-1">
           <Text className="text-base font-medium text-muted-foreground">Strain</Text>
         </View>
-        <View className="rounded-full bg-primary/10 px-2 py-0.5">
-          <Text className="text-xs font-medium text-primary">Whoop</Text>
-        </View>
+        {data && <SourceBadge source="Whoop" />}
       </CardHeader>
       <CardContent>
         {isLoading ? (

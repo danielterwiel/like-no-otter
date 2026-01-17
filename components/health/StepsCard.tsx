@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SourceBadge } from "./SourceBadge";
 import type { StepsData } from "@/lib/health";
 
 interface StepsCardProps {
@@ -22,7 +23,10 @@ export function StepsCard({ data, isLoading }: StepsCardProps) {
         <View className="h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
           <Ionicons name="footsteps-outline" size={20} color="#10b981" />
         </View>
-        <Text className="text-base font-medium text-muted-foreground">Steps</Text>
+        <View className="flex-1">
+          <Text className="text-base font-medium text-muted-foreground">Steps</Text>
+        </View>
+        {data && <SourceBadge source="Apple Health" />}
       </CardHeader>
       <CardContent>
         {isLoading ? (

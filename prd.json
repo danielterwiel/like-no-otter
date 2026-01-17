@@ -19,9 +19,9 @@
   },
   "integrations": {
     "whoop": {
-      "apiBase": "https://api.whoop.com",
-      "authUrl": "https://api.whoop.com/oauth/oauth2/auth",
-      "tokenUrl": "https://api.whoop.com/oauth/oauth2/token",
+      "apiBase": "https://api.prod.whoop.com",
+      "authUrl": "https://api.prod.whoop.com/oauth/oauth2/auth",
+      "tokenUrl": "https://api.prod.whoop.com/oauth/oauth2/token",
       "scopes": [
         "read:recovery",
         "read:sleep",

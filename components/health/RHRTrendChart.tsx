@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Text } from "@/components/ui/text";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SourceBadge } from "./SourceBadge";
 import type { RHRTrendData } from "@/lib/health";
 
 // Victory Native module references (loaded dynamically on native)
@@ -97,11 +98,13 @@ export function RHRTrendChart({ data, isLoading }: RHRTrendChartProps) {
           <Text className="text-base font-medium text-muted-foreground">RHR Trend</Text>
           <Text className="text-xs text-muted-foreground">Last 7 days</Text>
         </View>
-        {selectedPoint && (
+        {selectedPoint ? (
           <View className="items-end">
             <Text className="text-lg font-bold">{selectedPoint.value} BPM</Text>
             <Text className="text-xs text-muted-foreground">{selectedPoint.day}</Text>
           </View>
+        ) : (
+          hasEnoughData && <SourceBadge source="Apple Health" />
         )}
       </CardHeader>
       <CardContent>

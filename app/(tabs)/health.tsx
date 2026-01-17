@@ -1,5 +1,5 @@
 import * as React from "react";
-import { View, ScrollView, Platform, TouchableOpacity } from "react-native";
+import { View, ScrollView, Platform, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/text";
@@ -13,8 +13,6 @@ import {
   RHRTrendChart,
   RecoveryCard,
   StrainCard,
-  WhoopSleepCard,
-  RecoveryTrendChart,
 } from "@/components/health";
 import {
   fetchTodayHealthData,
@@ -27,17 +25,18 @@ import {
   getLatestWhoopRecovery,
   getLatestWhoopCycle,
   getLatestWhoopSleep,
-  getRecoveryTrendData,
   type WhoopRecoveryData,
   type WhoopCycleData,
   type WhoopSleepData,
-  type RecoveryTrendData,
 } from "@/lib/db/queries/whoop";
+import { syncWhoopData } from "@/lib/integrations/whoop";
+import { useToast } from "@/components/ui/toast";
 
 export default function HealthScreen() {
   const router = useRouter();
   const { authStatus, isAvailable } = useHealthKit();
   const { isConnected } = useConnections();
+  const { showToast } = useToast();
   const [healthData, setHealthData] = React.useState<HealthData | null>(null);
   const [rhrTrendData, setRhrTrendData] = React.useState<RHRTrendData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -48,8 +47,8 @@ export default function HealthScreen() {
   const [whoopRecovery, setWhoopRecovery] = React.useState<WhoopRecoveryData | null>(null);
   const [whoopStrain, setWhoopStrain] = React.useState<WhoopCycleData | null>(null);
   const [whoopSleep, setWhoopSleep] = React.useState<WhoopSleepData | null>(null);
-  const [recoveryTrend, setRecoveryTrend] = React.useState<RecoveryTrendData | null>(null);
   const [isWhoopLoading, setIsWhoopLoading] = React.useState(true);
+  const [isWhoopSyncing, setIsWhoopSyncing] = React.useState(false);
 
   React.useEffect(() => {
     async function loadHealthData() {
@@ -81,22 +80,19 @@ export default function HealthScreen() {
         setWhoopRecovery(null);
         setWhoopStrain(null);
         setWhoopSleep(null);
-        setRecoveryTrend(null);
         return;
       }
 
       setIsWhoopLoading(true);
       try {
-        const [recovery, strain, sleep, trend] = await Promise.all([
+        const [recovery, strain, sleep] = await Promise.all([
           getLatestWhoopRecovery(),
           getLatestWhoopCycle(),
           getLatestWhoopSleep(),
-          getRecoveryTrendData(7),
         ]);
         setWhoopRecovery(recovery);
         setWhoopStrain(strain);
         setWhoopSleep(sleep);
-        setRecoveryTrend(trend);
       } catch (error) {
         console.error("Failed to load Whoop data:", error);
       } finally {
@@ -105,6 +101,63 @@ export default function HealthScreen() {
     }
     loadWhoopData();
   }, [whoopConnected]);
+
+  // Manual Whoop sync function
+  const handleWhoopSync = React.useCallback(async () => {
+    if (!whoopConnected || isWhoopSyncing) return;
+
+    setIsWhoopSyncing(true);
+    try {
+      const result = await syncWhoopData();
+
+      if (result.success) {
+        // Reload Whoop data from database
+        const [recovery, strain, sleep] = await Promise.all([
+          getLatestWhoopRecovery(),
+          getLatestWhoopCycle(),
+          getLatestWhoopSleep(),
+        ]);
+        setWhoopRecovery(recovery);
+        setWhoopStrain(strain);
+        setWhoopSleep(sleep);
+
+        // Show success toast
+        if (result.error?.includes("Skipped")) {
+          // Rate limited
+          showToast({
+            type: "info",
+            title: "Already synced recently",
+            description: result.error,
+            duration: 3000,
+          });
+        } else {
+          showToast({
+            type: "success",
+            title: "Whoop data synced",
+            description: `${result.recoveryCount || 0} recovery, ${result.sleepCount || 0} sleep, ${result.cycleCount || 0} cycles`,
+            duration: 3000,
+          });
+        }
+      } else {
+        showToast({
+          type: "error",
+          title: "Sync failed",
+          description: result.error || "Failed to sync Whoop data",
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to sync Whoop:", error);
+      showToast({
+        type: "error",
+        title: "Sync failed",
+        description: "An unexpected error occurred",
+        duration: 5000,
+      });
+    } finally {
+      setIsWhoopSyncing(false);
+    }
+  }, [whoopConnected, isWhoopSyncing, showToast]);
 
   // Show denied state if on iOS and authorization was denied
   if (isAvailable && authStatus === "denied") {
@@ -129,11 +182,34 @@ export default function HealthScreen() {
       className="flex-1 bg-background"
       contentContainerClassName="p-4 gap-4"
     >
-      <Text className="text-2xl font-bold">Today</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-2xl font-bold">Today</Text>
+        {whoopConnected && (
+          <TouchableOpacity
+            testID="whoop-sync-button"
+            onPress={handleWhoopSync}
+            disabled={isWhoopSyncing}
+            className="rounded-lg bg-primary/10 px-3 py-2 flex-row items-center gap-2"
+          >
+            {isWhoopSyncing ? (
+              <ActivityIndicator size="small" color="#6366f1" />
+            ) : (
+              <Ionicons name="refresh" size={16} color="#6366f1" />
+            )}
+            <Text className="text-sm font-medium text-primary">
+              {isWhoopSyncing ? "Syncing..." : "Sync Whoop"}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       <View className="flex-row gap-4">
         <View className="flex-1">
-          <SleepCard data={healthData?.sleep ?? null} isLoading={isLoading} />
+          <SleepCard
+            data={healthData?.sleep ?? null}
+            whoopData={whoopSleep}
+            isLoading={isLoading || isWhoopLoading}
+          />
         </View>
         <View className="flex-1">
           <StepsCard data={healthData?.steps ?? null} isLoading={isLoading} />
@@ -142,41 +218,39 @@ export default function HealthScreen() {
 
       <View className="flex-row gap-4">
         <View className="flex-1">
-          <CaloriesCard data={healthData?.calories ?? null} isLoading={isLoading} />
+          <CaloriesCard
+            data={healthData?.calories ?? null}
+            whoopData={whoopStrain}
+            isLoading={isLoading || isWhoopLoading}
+          />
         </View>
         <View className="flex-1">
-          <RHRCard data={healthData?.heartRate ?? null} isLoading={isLoading} />
+          <RHRCard
+            data={healthData?.heartRate ?? null}
+            whoopData={whoopRecovery}
+            isLoading={isLoading || isWhoopLoading}
+          />
         </View>
       </View>
 
-      <RHRTrendChart data={rhrTrendData} isLoading={isTrendLoading} />
-
-      {/* Whoop Section */}
-      {whoopConnected ? (
-        <View testID="whoop-section">
-          <Text className="text-2xl font-bold mt-4">Whoop</Text>
-
-          <View className="flex-row gap-4 mt-4">
+      {/* Whoop-specific metrics (only shown when connected) */}
+      {whoopConnected && (
+        <>
+          <View className="flex-row gap-4">
             <View className="flex-1">
               <RecoveryCard data={whoopRecovery} isLoading={isWhoopLoading} />
             </View>
-          </View>
-
-          <View className="flex-row gap-4 mt-4">
             <View className="flex-1">
               <StrainCard data={whoopStrain} isLoading={isWhoopLoading} />
             </View>
           </View>
+        </>
+      )}
 
-          <View className="mt-4">
-            <WhoopSleepCard data={whoopSleep} isLoading={isWhoopLoading} />
-          </View>
+      <RHRTrendChart data={rhrTrendData} isLoading={isTrendLoading} />
 
-          <View className="mt-4">
-            <RecoveryTrendChart data={recoveryTrend} isLoading={isWhoopLoading} />
-          </View>
-        </View>
-      ) : (
+      {/* Whoop Connection CTA (only shown when not connected) */}
+      {!whoopConnected && (
         <View testID="whoop-empty-state" className="mt-4">
           <View className="rounded-xl border border-border bg-card p-4">
             <View className="flex-row items-center gap-3">
@@ -186,7 +260,7 @@ export default function HealthScreen() {
               <View className="flex-1">
                 <Text className="text-base font-medium">Connect Whoop</Text>
                 <Text className="text-sm text-muted-foreground">
-                  See recovery, strain, and sleep data
+                  See recovery, strain, and enhanced sleep data
                 </Text>
               </View>
               <TouchableOpacity
