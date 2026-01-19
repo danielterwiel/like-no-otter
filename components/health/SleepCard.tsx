@@ -57,7 +57,7 @@ interface SleepStageBarProps {
   color: string;
 }
 
-function SleepStageBar({ label, duration, total, color }: SleepStageBarProps) {
+function SleepStageBar({ label: _label, duration, total, color }: SleepStageBarProps) {
   const percentage = duration && total > 0 ? (duration / total) * 100 : 0;
 
   return (
@@ -68,8 +68,13 @@ function SleepStageBar({ label, duration, total, color }: SleepStageBarProps) {
           style={{ width: `${percentage}%`, backgroundColor: color }}
         />
       </View>
-      <Text className="mt-1 text-xs text-muted-foreground">{label}</Text>
-      <Text className="text-xs font-medium">{formatDuration(duration)}</Text>
+      <View className="mt-1.5 flex-row items-center gap-1">
+        <View
+          className="h-2 w-2 rounded-full"
+          style={{ backgroundColor: color }}
+        />
+        <Text className="text-xs font-medium">{formatDuration(duration)}</Text>
+      </View>
     </View>
   );
 }
@@ -97,7 +102,7 @@ export function SleepCard({ data, whoopData, isLoading }: SleepCardProps) {
         <View className="flex-1">
           <Text className="text-base font-medium text-muted-foreground">Sleep</Text>
         </View>
-        {hasData && <SourceBadge source={useWhoopData ? "Whoop" : "Apple Health"} />}
+        {hasData && <SourceBadge source={useWhoopData ? "Whoop" : "Health"} />}
       </CardHeader>
       <CardContent>
         {isLoading ? (

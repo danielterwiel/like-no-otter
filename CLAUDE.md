@@ -10,9 +10,9 @@ iOS health & workout tracker combining HealthKit metrics, active workout logging
 
 ```bash
 # Development
-yarn start              # Start Expo dev server
-yarn ios                # Run on iOS simulator
-yarn android            # Run on Android emulator
+npm start              # Start Expo dev server
+npm run ios                # Run on iOS simulator
+npm run android            # Run on Android emulator
 
 # Quality checks
 npm run check           # Run all checks (format, lint, types, tests, audit)
@@ -42,6 +42,8 @@ Use `@/` for imports (configured in tsconfig.json):
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 ```
+
+Use `npm`, no `yarn`, `bun` or `pnpm`
 
 ### Styling Pattern
 

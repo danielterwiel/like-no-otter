@@ -19,14 +19,14 @@ function formatSteps(count: number): string {
 export function StepsCard({ data, isLoading }: StepsCardProps) {
   return (
     <Card testID="steps-card">
-      <CardHeader className="flex-row items-center gap-3 pb-2">
-        <View className="h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
-          <Ionicons name="footsteps-outline" size={20} color="#10b981" />
+      <CardHeader className="pb-2">
+        <View className="flex-row items-center justify-between mb-2">
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
+            <Ionicons name="footsteps-outline" size={20} color="#10b981" />
+          </View>
+          {data && <SourceBadge source="Health" />}
         </View>
-        <View className="flex-1">
-          <Text className="text-base font-medium text-muted-foreground">Steps</Text>
-        </View>
-        {data && <SourceBadge source="Apple Health" />}
+        <Text className="text-base font-medium text-muted-foreground">Steps</Text>
       </CardHeader>
       <CardContent>
         {isLoading ? (

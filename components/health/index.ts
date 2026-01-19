@@ -8,3 +8,4 @@ export { StrainCard } from "./StrainCard";
 export { WhoopSleepCard } from "./WhoopSleepCard";
 export { RecoveryTrendChart } from "./RecoveryTrendChart";
 export { SourceBadge } from "./SourceBadge";
+export { TodayHealthSummaryCard } from "./TodayHealthSummaryCard";

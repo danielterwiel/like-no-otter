@@ -2,7 +2,7 @@ import * as React from "react";
 import { View } from "react-native";
 import { Text } from "@/components/ui/text";
 
-export type DataSource = "Apple Health" | "Whoop";
+export type DataSource = "Health" | "Whoop";
 
 interface SourceBadgeProps {
   source: DataSource;

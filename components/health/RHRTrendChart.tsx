@@ -104,7 +104,7 @@ export function RHRTrendChart({ data, isLoading }: RHRTrendChartProps) {
             <Text className="text-xs text-muted-foreground">{selectedPoint.day}</Text>
           </View>
         ) : (
-          hasEnoughData && <SourceBadge source="Apple Health" />
+          hasEnoughData && <SourceBadge source="Health" />
         )}
       </CardHeader>
       <CardContent>

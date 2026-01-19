@@ -30,7 +30,7 @@ export function RHRCard({ data, whoopData, isLoading }: RHRCardProps) {
         <View className="flex-1">
           <Text className="text-base font-medium text-muted-foreground">Resting HR</Text>
         </View>
-        {hasData && <SourceBadge source={useWhoopData ? "Whoop" : "Apple Health"} />}
+        {hasData && <SourceBadge source={useWhoopData ? "Whoop" : "Health"} />}
       </CardHeader>
       <CardContent>
         {isLoading ? (
